@@ -6,7 +6,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.example.core.domain.Item;
-import org.example.core.ports.IItemUseCase;
+import org.example.core.ports.in.IItemUseCase;
 // NEW LINE REQUIRED: Import the DTO from the same package
 //import org.example.adapters.ItemCreationRequest;
 

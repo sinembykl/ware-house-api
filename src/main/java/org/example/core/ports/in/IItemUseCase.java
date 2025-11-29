@@ -1,4 +1,4 @@
-package org.example.core.ports;
+package org.example.core.ports.in;
 
 
 import org.example.core.domain.Item;

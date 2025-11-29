@@ -22,24 +22,25 @@ public class Order {
         this.store = store;
         this.unit = unit;
     }
+    Order() {}
 
-    long getOrder_id(){
+    public long getOrder_id(){
         return order_id;
     }
-    String getStore(){
+    public String getStore(){
         return store;
     }
-    int getUnit(){
+    public int getUnit(){
         return unit;
     }
 
-    void setOrder_id(long order_id){
+    public void setOrder_id(long order_id){
         this.order_id = order_id;
     }
-    void setStore(String store){
+    public void setStore(String store){
         this.store = store;
     }
-    void setUnit(int unit){
+    public void setUnit(int unit){
         this.unit = unit;
     }
 

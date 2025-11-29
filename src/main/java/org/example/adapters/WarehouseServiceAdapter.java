@@ -5,14 +5,18 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.example.core.domain.Item;
-import org.example.core.ports.IItemRepository;
+import org.example.core.domain.Order;
+import org.example.core.ports.out.IItemRepository;
+import org.example.core.ports.out.IPersistOrderPort;
+import org.example.core.results.NoContentResult;
 import org.example.persistence.ItemEntity;
+import org.example.persistence.OrderEntity;
 
 /*
 Implements the Outer Port and performs the database save.
  */
 @ApplicationScoped
-public class ItemService implements IItemRepository {
+public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPort {
 
     @Inject
     EntityManager em;
@@ -34,6 +38,25 @@ public class ItemService implements IItemRepository {
 
 
         return item;
+    }
+
+    @Override
+    @Transactional
+    public NoContentResult persistOrder(Order order){
+        try {
+            OrderEntity orderEntity = new OrderEntity(order);
+            em.persist(orderEntity);
+            order.setOrder_id(orderEntity.getOrder_id());
+
+            return new NoContentResult();
+        } catch (Exception e){
+
+            NoContentResult noContentResult = new NoContentResult();
+
+            noContentResult.setError(500, e.getMessage());
+            return noContentResult;
+        }
+
     }
 
 

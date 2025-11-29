@@ -1,6 +1,7 @@
 package org.example.persistence;
 
 import jakarta.persistence.*;
+import org.example.core.domain.Order;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,7 +35,7 @@ public class OrderEntity {
 
     }
 
-    public OrderEntity(String store, int priority, OrderStatus status) {
+    public OrderEntity(Order order) {
         this.store = store;
         this.priority = priority;
         this.status = status;
