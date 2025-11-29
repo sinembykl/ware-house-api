@@ -25,6 +25,9 @@ public class OrderEntity {
     @Column
     private LocalDateTime CreatedAt;
 
+    @Column
+    private int unit;
+
     @ManyToOne
     OrderItemEntity orderItemEntity;
 
@@ -36,10 +39,12 @@ public class OrderEntity {
     }
 
     public OrderEntity(Order order) {
-        this.store = store;
-        this.priority = priority;
-        this.status = status;
+        //mapping
+        this.store = order.getStore();
+        this.priority = 1;
+        this.status = OrderStatus.IN_PROGRESS;
         CreatedAt = LocalDateTime.now();
+        this.unit = order.getUnit();
     }
 
     public Long getOrder_id() {return order_id;}
@@ -52,6 +57,8 @@ public class OrderEntity {
     public void setStatus(OrderStatus status) {this.status = status;}
     public LocalDateTime getCreatedAt() {return CreatedAt;}
     public void setCreatedAt(LocalDateTime CreatedAt) {this.CreatedAt = CreatedAt;}
+    public int getUnit() {return unit;}
+    public void setUnit(int unit) {this.unit = unit;}
 
 
 }

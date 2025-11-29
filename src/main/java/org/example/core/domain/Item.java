@@ -2,7 +2,7 @@ package org.example.core.domain;
 
 public class Item {
     private int sku;
-    long item_id;
+    Long item_id;
     String name;
     String location;
     //String description;

@@ -29,6 +29,7 @@ public class ItemEntity {
     }
 
     public ItemEntity(Item item) {
+        //this.item_id = item.getItem_id(); // it will automatically generated
         this.sku = item.getSku();
         this.item_name = item.getName();
         this.location = item.getLocation();
