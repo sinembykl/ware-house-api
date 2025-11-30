@@ -17,8 +17,8 @@ public class Order {
     //Date created; // the date of creation
     //long employee_id;
 
-    public Order(long order_id, String store, int unit) {
-        this.order_id = order_id;
+    public Order( String store, int unit) {
+        //this.order_id = order_id;
         this.store = store;
         this.unit = unit;
     }

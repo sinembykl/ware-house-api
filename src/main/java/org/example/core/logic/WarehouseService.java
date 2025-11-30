@@ -5,17 +5,23 @@ import jakarta.inject.Inject;
 import org.example.core.domain.Item;
 import org.example.core.domain.Order;
 import org.example.core.ports.in.ICreateOrderUseCase;
+import org.example.core.ports.in.ILoadAllItemUseCase;
+import org.example.core.ports.in.ILoadOrderUseCase;
 import org.example.core.ports.out.IItemRepository;
 import org.example.core.ports.in.ICreateItemUseCase;
 import org.example.core.ports.out.IPersistOrderPort;
+import org.example.core.ports.out.IReadItemsPort;
+import org.example.core.ports.out.IReadOrderPort;
 import org.example.core.results.NoContentResult;
+
+import java.util.List;
 
 
 /*
 We are implementing Inner Port and accessing to Outer Port
  */
 @ApplicationScoped // Necessary for Quarkus to manage and inject this class
-public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase {
+public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase, ILoadAllItemUseCase, ILoadOrderUseCase {
     /*
     The @ApplicationScoped and @Inject annotations allow Quarkus to manage the instance of ItemManager
     and provide it with the necessary dependency (ItemService) when the API calls the system.
@@ -23,14 +29,17 @@ public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase
      */
     private IItemRepository itemRepository;
     private IPersistOrderPort persistOrderPort;
+    private IReadItemsPort readItemsPort;
+    private IReadOrderPort readOrderPort;
 
     @Inject
-    public WarehouseService(IItemRepository itemRepository, IPersistOrderPort persistOrderPort) {
+    public WarehouseService(IItemRepository itemRepository, IPersistOrderPort persistOrderPort,
+                            IReadItemsPort readItemsPort, IReadOrderPort readOrderPort) {
         this.itemRepository = itemRepository;
         this.persistOrderPort = persistOrderPort;
+        this.readItemsPort = readItemsPort;
+        this.readOrderPort = readOrderPort;
     }
-
-
 
     @Override
     public NoContentResult createItem(Item item) {
@@ -45,5 +54,17 @@ public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase
 
         // connection to the Outer Port
         return this.persistOrderPort.persistOrder(order);
+    }
+
+    @Override
+    public List<Item> loadAllItems(){
+        //inner port overwritten, now it is calling outer port
+        return this.readItemsPort.readItems();
+    }
+
+    @Override
+    public List<Order> loadOrders(int orderId){
+
+        return this.readOrderPort.readOrders(orderId);
     }
 }
