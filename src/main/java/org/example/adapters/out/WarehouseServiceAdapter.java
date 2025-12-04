@@ -53,6 +53,17 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
     }
 
     @Override
+    public boolean existsBySku(String sku) {
+
+        return !em.createQuery("select i from ItemEntity i where i.sku= :sku", ItemEntity.class)
+                .setParameter("sku", sku)
+                .setMaxResults(1)
+                .getResultList()
+                .isEmpty();
+
+    }
+
+    @Override
     @Transactional
     public NoContentResult persistOrder(Order order){
         try {

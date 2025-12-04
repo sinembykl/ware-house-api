@@ -1,13 +1,13 @@
 package org.example.core.domain;
 
 public class Item {
-    private int sku;
+    private String sku;
     Long item_id;
     String name;
     String location;
     //String description;
 
-    public Item(int sku,String name, String location) {
+    public Item(String sku,String name, String location) {
         this.sku = sku;
         this.location = location;
         this.name = name;
@@ -18,10 +18,10 @@ public class Item {
     public void setItem_id(long item_id) {
         this.item_id = item_id;
     }
-    public int getSku() {
+    public String getSku() {
         return sku;
     }
-    public void setSku(int sku) {
+    public void setSku(String sku) {
         this.sku = sku;
     }
     public String getName() {

@@ -9,4 +9,6 @@ import org.example.persistence.OrderStatus;
 public interface IItemRepository {
 
     NoContentResult createItem(Item item);
+
+    boolean existsBySku(String sku);
 }

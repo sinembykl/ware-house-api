@@ -16,7 +16,7 @@ public class ItemEntity {
     private Long item_id;
 
     @Column
-    private int sku;
+    private String sku;
 
     @Column(nullable = false)
     private String item_name;
@@ -37,8 +37,8 @@ public class ItemEntity {
 
     public Long getItem_id() {return this.item_id;}
     public void setItem_id(Long item_id) {this.item_id = item_id;}
-    public int getSku() {return this.sku;}
-    public void setSku(int sku) {this.sku = sku;}
+    public String getSku() {return this.sku;}
+    public void setSku(String sku) {this.sku = sku;}
     public String getItem_name() {return this.item_name;}
     public void setItem_name(String item_name) {this.item_name = item_name;}
     public String getLocation() {return this.location;}

@@ -8,4 +8,6 @@ import org.example.core.results.NoContentResult;
 public interface ICreateItemUseCase {
 
     NoContentResult createItem(Item item);
+
+    boolean existsBySku(String sku);
 }

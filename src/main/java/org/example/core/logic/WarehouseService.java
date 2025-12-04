@@ -67,4 +67,8 @@ public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase
 
         return this.readOrderPort.readOrders(orderId);
     }
+    @Override
+    public boolean existsBySku(String sku){
+        return this.itemRepository.existsBySku(sku);
+    }
 }

@@ -25,29 +25,12 @@ public class WareHouseController {
 
     // ??is it right to inject adapter directly or should i reach out inner port only??
 
+    /*
+    //bi tane daha adapter controller ile domain arasina koy ve orada übersetzung yapilsin
+     */
 
     @Inject
-    WarehouseServiceAdapter adapter;
-
-    // DTO for now
-    public static class ItemCreationRequest {
-        public int sku;
-        public String name;
-        public String location;
-
-        // Ensure you have a public no-arg constructor if using private fields/setters,
-        // but public fields (as shown) often suffice for DTOs.
-        public ItemCreationRequest() {}
-    }
-
-    // DTO to update later
-    public static class OrderCreationRequest {
-        public String store;
-        public int unit;
-
-        public OrderCreationRequest() {}
-
-    }
+    WarehouseFacade adapter;
 
 
     // POST/items: Create a new Item
@@ -55,8 +38,7 @@ public class WareHouseController {
     @POST
     public Response createItem(ItemCreationRequest request){
             // Calling core logic via Inner Port
-            Item item = new Item(request.sku, request.name, request.location);
-            this.adapter.createItem(item);
+            this.adapter.createItem(request);
         return Response.status(Response.Status.CREATED).build();
     }
 
@@ -65,21 +47,20 @@ public class WareHouseController {
     public Response findAllItems() {
 
 
-        List<Item> result= (List<Item>) adapter.readItems();
+        List<Item> result= (List<Item>) adapter.findAllItems();
         return Response.ok(new GenericEntity<List<Item>>(result) {}).build();
 
     }
 
 
+    //itempotent?
     @Path("/order")
     @POST
     public Response createOrder(OrderCreationRequest request){
-        // add DTO as a seperate class and delete inner classes !!
-
-        Order order = new Order(request.store, request.unit);
 
 
-        this.adapter.persistOrder(order);
+
+        this.adapter.createOrder(request);
 
         // Return 201 created
         return Response.status(Response.Status.CREATED).build();
