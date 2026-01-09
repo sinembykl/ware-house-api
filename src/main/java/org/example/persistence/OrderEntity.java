@@ -2,8 +2,10 @@ package org.example.persistence;
 
 import jakarta.persistence.*;
 import org.example.core.domain.Order;
+import org.example.core.domain.OrderItem;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
@@ -28,11 +30,11 @@ public class OrderEntity {
     @Column
     private int unit;
 
-    @ManyToOne
-    OrderItemEntity orderItemEntity;
 
-    //One order has many Order Items
-    //List<OrderItemEntity> items;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<OrderItemEntity> orderItem;
+
+
 
     public OrderEntity() {
 
@@ -42,7 +44,7 @@ public class OrderEntity {
         //mapping
         this.store = order.getStore();
         this.priority = 1;
-        this.status = OrderStatus.IN_PROGRESS;
+        this.status = order.getStatus();
         CreatedAt = LocalDateTime.now();
         this.unit = order.getUnit();
     }
@@ -59,6 +61,11 @@ public class OrderEntity {
     public void setCreatedAt(LocalDateTime CreatedAt) {this.CreatedAt = CreatedAt;}
     public int getUnit() {return unit;}
     public void setUnit(int unit) {this.unit = unit;}
+    // CHANGE: Accept List<OrderItem> to match what the Mapper generates
 
+    public void setOrderItemEntities(List<OrderItemEntity> orderItem) {
+        this.orderItem = orderItem;
+    }
+    public List<OrderItemEntity> getOrderItemEntities() {return orderItem;}
 
 }

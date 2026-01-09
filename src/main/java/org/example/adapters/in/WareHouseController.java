@@ -4,12 +4,12 @@ package org.example.adapters.in;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.GenericEntity;
-import jakarta.ws.rs.core.Link;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.example.adapters.out.WarehouseServiceAdapter;
 import org.example.core.domain.Item;
 import org.example.core.domain.Order;
+import org.example.core.domain.OrderItem;
+import org.example.core.results.NoContentResult;
 
 import java.util.List;
 // NEW LINE REQUIRED: Import the DTO from the same package
@@ -19,26 +19,18 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class WareHouseController {
-    /*
-    Translates HTTP/JSON requests into calls to the Inner Port
-     */
-
-    // ??is it right to inject adapter directly or should i reach out inner port only??
-
-    /*
-    //bi tane daha adapter controller ile domain arasina koy ve orada übersetzung yapilsin
-     */
 
     @Inject
-    WarehouseFacade adapter;
+    WarehouseFacade facade;
 
 
     // POST/items: Create a new Item
-    @Path("/items")
+    @Path("/item")
     @POST
     public Response createItem(ItemCreationRequest request){
-            // Calling core logic via Inner Port
-            this.adapter.createItem(request);
+            NoContentResult result = facade.createItem(request);
+
+            // if (result.isError())
         return Response.status(Response.Status.CREATED).build();
     }
 
@@ -47,26 +39,56 @@ public class WareHouseController {
     public Response findAllItems() {
 
 
-        List<Item> result= (List<Item>) adapter.findAllItems();
+        List<Item> result= (List<Item>) facade.findAllItems();
         return Response.ok(new GenericEntity<List<Item>>(result) {}).build();
 
     }
 
-
-    //itempotent?
     @Path("/order")
     @POST
     public Response createOrder(OrderCreationRequest request){
 
 
 
-        this.adapter.createOrder(request);
+        NoContentResult result = this.facade.createOrder(request);
 
         // Return 201 created
-        return Response.status(Response.Status.CREATED).build();
+        return Response.status(Response.Status.CREATED)
+                .entity(result)
+                .build();
 
     }
 
+    @Path("/order/{id}")
+    @GET
+    public Response findOrderById(@PathParam("id") Long id){
+
+        List<Order> orders = facade.findAllOrders(id);
+
+        if(orders.isEmpty()){
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        return Response.ok(new GenericEntity<List<Order>>(orders) {}).build();
+    }
+
+    @Path("order/{id}/items")
+    @POST
+    public Response addOrderItems(@PathParam("id") Long id, OrderItemCreationRequest request) {
+        // Correctly captures the ID from the URL
+        request.setOrderId(id);
+
+        NoContentResult result = this.facade.createOrderItem(request);
+
+        if (result.hasError()) {
+            // Return the actual error code (409, 404, etc.) instead of hardcoded 400
+            return Response.status(result.getErrorCode())
+                    .entity(result) // Return the result so you can see the message in Postman
+                    .build();
+        }
+
+        return Response.status(Response.Status.CREATED).entity(result).build();
+    }
 
 
 

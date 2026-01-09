@@ -1,5 +1,11 @@
 package org.example.core.domain;
 
+import org.example.persistence.OrderItemEntity;
+import org.example.persistence.OrderStatus;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
 public class Order {
     /*
     user input
@@ -9,18 +15,21 @@ public class Order {
            ...
    }
      */
-    private long order_id;
+    private Long order_id;
     private String store; //filiale
     private int unit;
-    //String status; //finished, in process so on
-    //String prio; // low, high, middle
-    //Date created; // the date of creation
-    //long employee_id;
+    private OrderStatus status;
+    private int priority;
+    private LocalDateTime CreatedAt;
+
+
+    // One Order can have more than 1 OrderEntity
+    List<OrderItem> orderItems;
 
     public Order( String store, int unit) {
-        //this.order_id = order_id;
         this.store = store;
         this.unit = unit;
+        this.status = OrderStatus.CREATED;
     }
     Order() {}
 
@@ -33,6 +42,7 @@ public class Order {
     public int getUnit(){
         return unit;
     }
+    public OrderStatus getStatus(){return status;}
 
     public void setOrder_id(long order_id){
         this.order_id = order_id;
@@ -42,6 +52,17 @@ public class Order {
     }
     public void setUnit(int unit){
         this.unit = unit;
+    }
+    public void setStatus(OrderStatus status){this.status = status;}
+
+    // CHANGE: Accept List<OrderItem> to match what the Mapper generates
+    public void setOrderItems(List<OrderItem> items) {
+        this.orderItems = items;
+    }
+
+    // Ensure the getter returns the same list for the Mapper/Jackson
+    public List<OrderItem> getOrderItems() {
+        return orderItems;
     }
 
 

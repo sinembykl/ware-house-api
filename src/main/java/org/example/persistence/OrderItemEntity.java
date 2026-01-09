@@ -3,6 +3,7 @@ package org.example.persistence;
 
 import jakarta.persistence.*;
 import org.example.core.domain.Item;
+import org.example.core.domain.OrderItem;
 
 @Entity
 public class OrderItemEntity {
@@ -27,13 +28,22 @@ public class OrderItemEntity {
 
 
 
-    //ItemEntity item;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="order_id")
+    private OrderEntity order;
+
+    @ManyToOne
+    @JoinColumn(name="item_id")
+    private ItemEntity item;
+
 
     public OrderItemEntity() {}
-    public OrderItemEntity( int qtyRequired, int qtyPicked, String location) {
-        this.qtyRequired = qtyRequired;
-        this.qtyPicked = qtyPicked;
-        this.location = location;
+
+    public OrderItemEntity(OrderItem orderItem) {
+        this.qtyRequired = orderItem.getQtyRequired();
+        this.qtyPicked = orderItem.getQtyPicked();
+        this.location = orderItem.getLocation();
+
     }
 
     public Long getId() {return id;}
@@ -44,7 +54,10 @@ public class OrderItemEntity {
     public void setQtyPicked(int qtyPicked) {this.qtyPicked = qtyPicked;}
     public String getLocation() {return location;}
     public void setLocation(String location) {this.location = location;}
-
+    public OrderEntity getOrder() { return order; }
+    public void setOrder(OrderEntity order) { this.order = order; }
+    public ItemEntity getItem() { return item; }
+    public void setItem(ItemEntity item) { this.item = item; }
 
 
 }

@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface ILoadOrderUseCase {
 
-    public List<Order> loadOrders(int  orderId);
+    public List<Order> loadOrders(Long  orderId);
 }

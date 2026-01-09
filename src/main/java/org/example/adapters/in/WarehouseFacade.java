@@ -5,16 +5,18 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.ApplicationPath;
 import org.example.core.domain.Item;
 import org.example.core.domain.Order;
-import org.example.core.ports.in.ICreateItemUseCase;
-import org.example.core.ports.in.ICreateOrderUseCase;
-import org.example.core.ports.in.ILoadAllItemUseCase;
-import org.example.core.ports.in.ILoadOrderUseCase;
+import org.example.core.domain.OrderItem;
+import org.example.core.ports.in.*;
 import org.example.core.ports.out.IPersistOrderPort;
+import org.example.core.results.NoContentResult;
 
 import java.util.List;
 
 @ApplicationScoped
 public class WarehouseFacade  {
+    /*
+    DTO to domain Mapping
+     */
 
     @Inject
     ICreateItemUseCase createItemUseCase;
@@ -24,26 +26,35 @@ public class WarehouseFacade  {
     ILoadAllItemUseCase loadAllItemUseCase;
     @Inject
     ILoadOrderUseCase loadOrderUseCase;
+    @Inject
+    ICreateOrderItem createOrderItemUseCase;
 
-    public void createItem(ItemCreationRequest request) {
+    public NoContentResult createItem(ItemCreationRequest request) {
         Item item = new Item(request.sku,request.name,request.location);
 
-        if (createItemUseCase.existsBySku(request.sku)) {
-            throw new RuntimeException("Sku is already in use");
-        }
-        this.createItemUseCase.createItem(item);
+        return  this.createItemUseCase.createItem(item);
     }
 
 
-    public void createOrder(OrderCreationRequest request) {
+    public NoContentResult createOrder(OrderCreationRequest request) {
         Order order = new Order(request.store,request.unit);
-        this.createOrderUseCase.createOrder(order);
+
+        return this.createOrderUseCase.createOrder(order);
     }
 
     public List<Item> findAllItems() {
         return this.loadAllItemUseCase.loadAllItems();
     }
 
+    public List<Order> findAllOrders(Long id) {
+        return this.loadOrderUseCase.loadOrders(id);
+    }
+
+    public NoContentResult createOrderItem(OrderItemCreationRequest request) {
+
+        OrderItem orderItem = new OrderItem(request.orderId,request.sku, request.qtyReq);
+        return this.createOrderItemUseCase.createOrderItem(orderItem);
+    }
 
 
 

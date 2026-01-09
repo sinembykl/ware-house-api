@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface IReadOrderPort {
 
-    public List<Order> readOrders(int orderId);
+    public List<Order> readOrders(Long orderId);
 }
