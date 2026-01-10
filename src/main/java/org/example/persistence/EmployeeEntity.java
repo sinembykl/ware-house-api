@@ -29,7 +29,7 @@ public class EmployeeEntity {
     private boolean active;
 
     @Column
-    private String shift;
+    private String shift; //spät, früh
 
     // One Employee can handle many Orders
     @OneToMany(mappedBy = "employee",cascade = CascadeType.ALL)

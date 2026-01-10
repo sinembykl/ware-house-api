@@ -21,7 +21,7 @@ public class Test1 {
         // Mock only the port we need for this test
         persistOrderPort = Mockito.mock(IPersistOrderPort.class);
 
-        warehouseService = new WarehouseService(null, persistOrderPort,null,null,null,null,null,null);
+        warehouseService = new WarehouseService(null, persistOrderPort,null,null,null,null,null,null,null);
     }
 
     @Test

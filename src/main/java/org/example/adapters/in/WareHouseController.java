@@ -76,10 +76,8 @@ public class WareHouseController {
     @Path("order/{id}/items")
     @POST
     public Response addOrderItems(@PathParam("id") Long id, OrderItemCreationRequest request) {
-        // Correctly captures the ID from the URL
-        request.setOrderId(id);
 
-        NoContentResult result = this.facade.createOrderItem(request);
+        NoContentResult result = this.facade.createOrderItem(id, request);
 
         if (result.hasError()) {
             // Return the actual error code (409, 404, etc.) instead of hardcoded 400
@@ -89,6 +87,18 @@ public class WareHouseController {
         }
 
         return Response.status(Response.Status.CREATED).entity(result).build();
+    }
+    @Path("orderItem/{id}")
+    @PUT
+    public Response pickOrderItem(@PathParam("id") Long id, OrderItemPickRequest request){
+
+        NoContentResult result = this.facade.pickOrderItem(id, request);
+        if (result.hasError()) {
+            return Response.status(result.getErrorCode())
+                    .entity(result)
+                    .build();
+        }
+        return Response.status(Response.Status.ACCEPTED).entity(result).build();
     }
 
     @Path("employee")
@@ -109,7 +119,7 @@ public class WareHouseController {
                     .entity(result)
                     .build();
         }
-        return Response.ok().build();
+        return Response.ok(result).build();
     }
 
     @Path("/order/{id}/complete")
@@ -124,6 +134,18 @@ public class WareHouseController {
 
         return Response.ok(result).build();
     }
+
+    @Path("orderItem/{id}")
+    @GET
+    public Response findOrderItemById(@PathParam("id") Long id){
+
+        OrderItem orderItem = this.facade.findById(id);
+        if(orderItem == null){
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(orderItem).build();
+    }
+
 
 
 

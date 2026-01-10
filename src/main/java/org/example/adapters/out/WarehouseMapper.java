@@ -45,7 +45,6 @@ public class WarehouseMapper {
 
         return order;
     }
-    // --- ORDER ITEM MAPPING (For UC-03) ---
     public static OrderItem toDomain(OrderItemEntity entity) {
         if (entity == null) return null;
         OrderItem item = new OrderItem();
@@ -53,9 +52,16 @@ public class WarehouseMapper {
         item.setQtyRequired(entity.getQtyRequired());
         item.setQtyPicked(entity.getQtyPicked());
         item.setLocation(entity.getLocation());
-        item.setItem(toDomain(entity.getItem())); // Link to Item Domain [cite: 36]
+
+        // Fix: Pull the SKU from the linked ItemEntity
+        if (entity.getItem() != null) {
+            item.setItem_sku(entity.getItem().getSku()); // This fills item_sku
+            item.setItem(toDomain(entity.getItem()));   // This fills the nested item object
+        }
+
         return item;
     }
+
 
 
 }

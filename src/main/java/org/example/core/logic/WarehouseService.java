@@ -19,7 +19,7 @@ import java.util.List;
 We are implementing Inner Port and accessing to Outer Port
  */
 @ApplicationScoped // Necessary for Quarkus to manage and inject this class
-public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase, ILoadAllItemUseCase, ILoadOrder, ICreateOrderItem, ICreateEmployee, IAssignOrder, ICompleteOrder {
+public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase, ILoadAllItemUseCase, ILoadOrder, ICreateOrderItem, ICreateEmployee, IAssignOrder, ICompleteOrder, IOrderItemPickUseCase {
     /*
     The @ApplicationScoped and @Inject annotations allow Quarkus to manage the instance of ItemManager
     and provide it with the necessary dependency (ItemService) when the API calls the system.
@@ -33,10 +33,11 @@ public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase
     private IPersistEmployeePort persistEmployeePort;
     private IAssignOrderOutPort assignOrderOutPort;
     private ICompleteOrderOutPort completeOrderOutPort;
+    private IOrderItemPickOutPort orderItemPickOutPort;
 
     @Inject
     public WarehouseService(IItemRepository itemRepository, IPersistOrderPort persistOrderPort,
-                            IReadItemsPort readItemsPort, IReadOrderPort readOrderPort, IOrderItemRepository orderItemRepository, IPersistEmployeePort persistEmployeePort, IAssignOrderOutPort assignOrderOutPort, ICompleteOrderOutPort completeOrderOutPort) {
+                            IReadItemsPort readItemsPort, IReadOrderPort readOrderPort, IOrderItemRepository orderItemRepository, IPersistEmployeePort persistEmployeePort, IAssignOrderOutPort assignOrderOutPort, ICompleteOrderOutPort completeOrderOutPort, IOrderItemPickOutPort orderItemPickOutPort ) {
         this.itemRepository = itemRepository;
         this.persistOrderPort = persistOrderPort;
         this.readItemsPort = readItemsPort;
@@ -45,6 +46,7 @@ public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase
         this.persistEmployeePort = persistEmployeePort;
         this.assignOrderOutPort = assignOrderOutPort;
         this.completeOrderOutPort = completeOrderOutPort;
+        this.orderItemPickOutPort = orderItemPickOutPort;
     }
 
     @Override
@@ -145,6 +147,28 @@ public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase
         // We don't need persistOrder here because the OutPort handles the update directly
         return this.completeOrderOutPort.completeOrder(id, finalStatus);
     }
+    @Override
+    public NoContentResult pickOrderItem(Long orderItemId, int amount) {
+        OrderItem orderItem = this.orderItemRepository.findById(orderItemId);
+        if (orderItem == null) {
+            return new NoContentResult(404, "Item not found");
+        }
+
+        // Now qtyRequired and qtyPicked are the ACTUAL values from the DB
+        if (amount > (orderItem.getQtyRequired() - orderItem.getQtyPicked())) {
+            NoContentResult error = new NoContentResult();
+            error.setError(400, "Amount is too big");
+            return error;
+        }
+
+        return this.orderItemPickOutPort.pickOrderItem(orderItemId, amount);
+    }
+
+    @Override
+    public OrderItem findById(Long id){
+        return this.orderItemRepository.findById(id);
+    }
+
 
 
 }

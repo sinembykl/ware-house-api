@@ -19,7 +19,7 @@ public class OrderEntity {
     private String store;
 
     @Column
-    private int priority;
+    private int priority; // 1, 2, 3
 
     @Column
     private OrderStatus status;

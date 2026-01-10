@@ -18,8 +18,10 @@ public class OrderItem {
         this.item_sku = item_sku;
         this.qtyRequired = qtyReq;
     }
+    public OrderItem(long orderId){
+        this.orderId = orderId;
+    }
     public OrderItem(){
-
     }
 
     // Rule: qtyPicked ≤ qtyRequired

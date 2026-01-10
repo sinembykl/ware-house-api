@@ -7,6 +7,7 @@ import org.example.core.domain.Item;
 import org.example.core.domain.Order;
 import org.example.core.domain.OrderItem;
 import org.example.core.ports.in.*;
+import org.example.core.ports.out.IOrderItemPickOutPort;
 import org.example.core.results.NoContentResult;
 import org.example.persistence.OrderStatus;
 
@@ -34,6 +35,9 @@ public class WarehouseFacade  {
     IAssignOrder assignOrder;
     @Inject
     ICompleteOrder completeOrder;
+    @Inject
+    IOrderItemPickUseCase pickOrderItem;
+
 
 
     public NoContentResult createItem(ItemCreationRequest request) {
@@ -57,9 +61,9 @@ public class WarehouseFacade  {
         return this.loadOrderUseCase.loadOrder(id);
     }
 
-    public NoContentResult createOrderItem(OrderItemCreationRequest request) {
+    public NoContentResult createOrderItem(Long orderId, OrderItemCreationRequest request) {
 
-        OrderItem orderItem = new OrderItem(request.orderId,request.sku, request.qtyReq);
+        OrderItem orderItem = new OrderItem(orderId,request.sku, request.qtyReq);
         return this.createOrderItemUseCase.createOrderItem(orderItem);
     }
     public NoContentResult createEmployee(EmployeeCreationObject request) {
@@ -73,7 +77,14 @@ public class WarehouseFacade  {
         // We pass the data from the Controller directly to the Use Case
         return this.completeOrder.completeOrder(id, request.getStatus());
     }
+    public NoContentResult pickOrderItem(Long id, OrderItemPickRequest request) {
+        return this.pickOrderItem.pickOrderItem(id, request.getAmount());
+        //
+    }
 
+    public OrderItem findById(Long id){
+        return this.createOrderItemUseCase.findById(id);
+    }
 
 
 

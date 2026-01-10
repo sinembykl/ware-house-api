@@ -24,7 +24,7 @@ Implements the Outer Port and performs the database save.
  */
 @ApplicationScoped
 public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPort,
-        IReadItemsPort, IReadOrderPort, IOrderItemRepository, IPersistEmployeePort, IAssignOrderOutPort, ICompleteOrderOutPort{
+        IReadItemsPort, IReadOrderPort, IOrderItemRepository, IPersistEmployeePort, IAssignOrderOutPort, ICompleteOrderOutPort, IOrderItemPickOutPort{
 
     @Inject
     EntityManager em;
@@ -138,6 +138,7 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
             // This is the "Linking" part
             entity.setOrder(orderEntity); // Connects to the Order row
             entity.setItem(itemEntity);   // Connects to the Item row
+            orderEntity.getOrderItemEntities().add(entity);
 
             // Set values from Domain
             entity.setQtyRequired(orderItem.getQtyRequired());
@@ -227,6 +228,46 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
 
         } catch (Exception e) {
             return new NoContentResult(500, "Database update failed: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public OrderItem findById(Long id) {
+        try {
+            // 1. Find the Entity in the database
+            OrderItemEntity entity = em.find(OrderItemEntity.class, id);
+
+            if (entity == null) {
+                return null;
+            }
+
+            // 2. Use your Mapper to turn it into a Domain object
+            return WarehouseMapper.toDomain(entity);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to find Order Item: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public NoContentResult pickOrderItem(Long orderItemId, int amount) {
+
+        try {
+            OrderItemEntity entity = em.find(OrderItemEntity.class, orderItemId);
+            if (entity == null) {
+                return null;
+            }
+
+            int newTotal = entity.getQtyPicked() + amount;
+            entity.setQtyPicked(newTotal);
+            NoContentResult result = new NoContentResult();
+            result.setId(entity.getId());
+            return result;
+        } catch (Exception e) {
+            NoContentResult error = new NoContentResult();
+            error.setError(500, "Update failed: " + e.getMessage());
+            return error;
         }
     }
 

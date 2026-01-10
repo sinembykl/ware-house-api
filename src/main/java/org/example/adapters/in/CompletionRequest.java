@@ -5,7 +5,6 @@ import org.example.persistence.OrderStatus;
 
 public class CompletionRequest {
     // This field maps to the "status" key in your JSON
-    private Long id;
     private OrderStatus status;
 
     // Default constructor for Jackson/Quarkus
@@ -19,5 +18,4 @@ public class CompletionRequest {
         this.status = status;
     }
 
-    public Long getId() {return id;}
 }
