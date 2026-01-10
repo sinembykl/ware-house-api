@@ -13,6 +13,13 @@ public class NoContentResult extends AbstractResult {
         super();
     }
 
+    public NoContentResult(int errorCode, String errorMessage) {
+        super();
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
+
+    }
+
     @Override
     public boolean isEmpty() {
         return true;

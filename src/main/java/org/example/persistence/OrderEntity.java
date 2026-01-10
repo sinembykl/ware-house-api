@@ -30,9 +30,14 @@ public class OrderEntity {
     @Column
     private int unit;
 
-
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     List<OrderItemEntity> orderItem;
+
+
+    // Many Orders can belong to one Employee
+    @ManyToOne
+    @JoinColumn(name = "employee_id") // This creates the foreign key in the Order table
+    private EmployeeEntity employee;
 
 
 
@@ -61,11 +66,10 @@ public class OrderEntity {
     public void setCreatedAt(LocalDateTime CreatedAt) {this.CreatedAt = CreatedAt;}
     public int getUnit() {return unit;}
     public void setUnit(int unit) {this.unit = unit;}
-    // CHANGE: Accept List<OrderItem> to match what the Mapper generates
-
-    public void setOrderItemEntities(List<OrderItemEntity> orderItem) {
-        this.orderItem = orderItem;
-    }
     public List<OrderItemEntity> getOrderItemEntities() {return orderItem;}
+    public void setOrderItemEntites(List<OrderItemEntity> orderItemEntities) {this.orderItem = orderItemEntities;}
+
+    public EmployeeEntity getEmployee() { return employee; }
+    public void setEmployee(EmployeeEntity employee) { this.employee = employee; }
 
 }

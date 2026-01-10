@@ -4,16 +4,15 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import org.example.core.domain.Employee;
 import org.example.core.domain.Item;
 import org.example.core.domain.Order;
 import org.example.core.domain.OrderItem;
+import org.example.core.ports.in.ICompleteOrder;
 import org.example.core.ports.in.ICreateOrderItem;
 import org.example.core.ports.out.*;
 import org.example.core.results.NoContentResult;
-import org.example.persistence.ItemEntity;
-import org.example.persistence.OrderEntity;
-import org.example.persistence.OrderItemEntity;
-import org.example.persistence.OrderStatus;
+import org.example.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,7 @@ Implements the Outer Port and performs the database save.
  */
 @ApplicationScoped
 public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPort,
-        IReadItemsPort, IReadOrderPort, IOrderItemRepository {
+        IReadItemsPort, IReadOrderPort, IOrderItemRepository, IPersistEmployeePort, IAssignOrderOutPort, ICompleteOrderOutPort{
 
     @Inject
     EntityManager em;
@@ -93,21 +92,23 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
     }
 
     @Override
-    @Transactional // Keep the session open during mapping
-    public List<Order> readOrders(Long orderId) {
+    @Transactional
+    public Order readOrder(Long orderId) { // Change return type to Order
         try {
-            // 1. Fetch the Entities as a List first
             List<OrderEntity> entities = em.createQuery(
                             "select o from OrderEntity o where o.order_id = :id", OrderEntity.class)
                     .setParameter("id", orderId)
                     .getResultList();
 
-            // 2. Map them to Domain objects
-            return entities.stream()
-                    .map(WarehouseMapper::toDomain)
-                    .collect(Collectors.toList());
+            // Check if list is empty to avoid index errors
+            if (entities.isEmpty()) {
+                return null;
+            }
+
+            // Map only the first result and return a single Order
+            return WarehouseMapper.toDomain(entities.get(0));
+
         } catch (Exception e) {
-            // This catch block was capturing the "ResultSet closed" error
             throw new RuntimeException("Database read failure: " + e.getMessage());
         }
     }
@@ -161,7 +162,77 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
         }
     }
 
+    @Override
+    @Transactional
+    public NoContentResult persistEmployee(Employee employee){
+        try{
+            EmployeeEntity employeeEntity = new EmployeeEntity(employee);
+            em.persist(employeeEntity);
+            employee.setId(employee.getId());
+            NoContentResult noContentResult = new NoContentResult();
+            noContentResult.setId(employee.getId());
+            return noContentResult;
+        } catch (Exception e) {
+            NoContentResult noContentResult = new NoContentResult();
+            noContentResult.setError(500,  e.getMessage());
+            return noContentResult;
+        }
+
+    }
+
+    @Override
+    @Transactional
+    public NoContentResult updateOrder(Long id, Long EmployeeId) {
+
+        try {
+            EmployeeEntity employeeEntity = em.find(EmployeeEntity.class, EmployeeId);
+            OrderEntity orderEntity = em.find(OrderEntity.class, id);
+
+            if(orderEntity != null && employeeEntity != null){
+
+                orderEntity.setEmployee(employeeEntity);
+                //UC-04
+                orderEntity.setStatus(OrderStatus.IN_PROGRESS);
+                return new NoContentResult();
+
+            } else {
+                NoContentResult error = new NoContentResult();
+                error.setError(404, "Order or Employee not found");
+                return error;
+            }
+
+        } catch (Exception e){
+            throw new RuntimeException("Failed tp assign employee: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public NoContentResult completeOrder(Long id, OrderStatus finalStatus) {
+        try {
+            // Find the Entity by ID
+            OrderEntity entity = em.find(OrderEntity.class, id);
+
+            if (entity == null) {
+                return new NoContentResult(404, "Order Entity not found in database.");
+            }
+
+            // Apply the final state
+            entity.setStatus(finalStatus);
+
+            // Prepare the response
+            NoContentResult result = new NoContentResult();
+            result.setId(entity.getOrder_id());
+            return result;
+
+        } catch (Exception e) {
+            return new NoContentResult(500, "Database update failed: " + e.getMessage());
+        }
+    }
+
+    }
 
 
 
-}
+
+

@@ -2,13 +2,13 @@ package org.example.adapters.in;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.ApplicationPath;
+import org.example.core.domain.Employee;
 import org.example.core.domain.Item;
 import org.example.core.domain.Order;
 import org.example.core.domain.OrderItem;
 import org.example.core.ports.in.*;
-import org.example.core.ports.out.IPersistOrderPort;
 import org.example.core.results.NoContentResult;
+import org.example.persistence.OrderStatus;
 
 import java.util.List;
 
@@ -25,9 +25,16 @@ public class WarehouseFacade  {
     @Inject
     ILoadAllItemUseCase loadAllItemUseCase;
     @Inject
-    ILoadOrderUseCase loadOrderUseCase;
+    ILoadOrder loadOrderUseCase;
     @Inject
     ICreateOrderItem createOrderItemUseCase;
+    @Inject
+    ICreateEmployee createEmployeeUseCase;
+    @Inject
+    IAssignOrder assignOrder;
+    @Inject
+    ICompleteOrder completeOrder;
+
 
     public NoContentResult createItem(ItemCreationRequest request) {
         Item item = new Item(request.sku,request.name,request.location);
@@ -46,8 +53,8 @@ public class WarehouseFacade  {
         return this.loadAllItemUseCase.loadAllItems();
     }
 
-    public List<Order> findAllOrders(Long id) {
-        return this.loadOrderUseCase.loadOrders(id);
+    public Order findAllOrder(Long id) {
+        return this.loadOrderUseCase.loadOrder(id);
     }
 
     public NoContentResult createOrderItem(OrderItemCreationRequest request) {
@@ -55,6 +62,18 @@ public class WarehouseFacade  {
         OrderItem orderItem = new OrderItem(request.orderId,request.sku, request.qtyReq);
         return this.createOrderItemUseCase.createOrderItem(orderItem);
     }
+    public NoContentResult createEmployee(EmployeeCreationObject request) {
+        Employee employee = new Employee(request.name, request.active, request.shift);
+        return this.createEmployeeUseCase.createEmployee(employee);
+    }
+    public NoContentResult assignOrder(Long id, Long employeeId) {
+        return this.assignOrder.assignOrder(id, employeeId);
+    }
+    public NoContentResult completeOrder(Long id, CompletionRequest request) {
+        // We pass the data from the Controller directly to the Use Case
+        return this.completeOrder.completeOrder(id, request.getStatus());
+    }
+
 
 
 

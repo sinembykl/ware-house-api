@@ -6,6 +6,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.example.core.domain.Employee;
 import org.example.core.domain.Item;
 import org.example.core.domain.Order;
 import org.example.core.domain.OrderItem;
@@ -63,13 +64,13 @@ public class WareHouseController {
     @GET
     public Response findOrderById(@PathParam("id") Long id){
 
-        List<Order> orders = facade.findAllOrders(id);
+        Order order = facade.findAllOrder(id);
 
-        if(orders.isEmpty()){
+        if(order == null){
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        return Response.ok(new GenericEntity<List<Order>>(orders) {}).build();
+        return Response.ok(order).build();
     }
 
     @Path("order/{id}/items")
@@ -88,6 +89,40 @@ public class WareHouseController {
         }
 
         return Response.status(Response.Status.CREATED).entity(result).build();
+    }
+
+    @Path("employee")
+    @POST
+    public Response createEmployee(EmployeeCreationObject request) {
+
+        NoContentResult result = this.facade.createEmployee(request);
+
+        return Response.status(Response.Status.CREATED).build();
+    }
+
+    @Path("order/{orderid}/assign/{employeeId}")
+    @PUT
+    public Response assignOrder(@PathParam("orderid")Long id,@PathParam("employeeId")Long employeeId){
+        NoContentResult result = this.facade.assignOrder(id, employeeId);
+        if (result.hasError()) {
+            return Response.status(result.getErrorCode())
+                    .entity(result)
+                    .build();
+        }
+        return Response.ok().build();
+    }
+
+    @Path("/order/{id}/complete")
+    @PUT
+    public Response completeOrder(@PathParam("id") Long id, CompletionRequest request) {
+        // request contains the finalStatus (DONE or FAILED)
+        NoContentResult result = facade.completeOrder(id, request);
+
+        if (result.hasError()) {
+            return Response.status(result.getErrorCode()).entity(result).build();
+        }
+
+        return Response.ok(result).build();
     }
 
 

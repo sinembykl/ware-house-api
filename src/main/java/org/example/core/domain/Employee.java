@@ -5,21 +5,24 @@ public class Employee {
     String name;
     //String shift;
     boolean active;
+    private String shift;
 
-    Employee(long id, String name, boolean active) {
-        this.id = id;
+
+    public Employee(String name, boolean active, String shift) {
         this.name = name;
         this.active = active;
+        this.shift = shift;
     }
 
-    // {id: 12345, name : Sinem, active : true}
+    public long getId() {return id;}
+    public void setId(long id) {this.id = id;}
+    public String getName() {return name;}
+    public void setName(String name) {this.name = name;}
+    public boolean isActive() {return active;}
+    public void activate() {this.active = true;}
+    public void deactivate() {this.active = false;}
+    public String getShift() {return shift;}
+    public void setShift(String shift) {this.shift = shift;}
 
-    void employee_status_activate(){
-        this.active = true;
-    }
-
-    void employee_status_deactivate(){
-        this.active = false;
-    }
 }
 

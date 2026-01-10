@@ -1,6 +1,8 @@
 package org.example.persistence;
 
 import jakarta.persistence.*;
+import org.example.adapters.in.OrderCreationRequest;
+import org.example.core.domain.Employee;
 import org.example.core.domain.Order;
 
 import java.util.List;
@@ -24,28 +26,31 @@ public class EmployeeEntity {
     private String Name;
 
     @Column
-    private String active;
+    private boolean active;
 
     @Column
     private String shift;
 
     // One Employee can handle many Orders
-    @ManyToOne
-    private OrderEntity orders;
+    @OneToMany(mappedBy = "employee",cascade = CascadeType.ALL)
+    private List<OrderEntity> orders;
 
     public EmployeeEntity() {
     }
-    public EmployeeEntity(String name, String active, String shift, OrderEntity orders) {
-        this.Name = name;
-        this.active = active;
-        this.shift = shift;
-        this.orders = orders;
+    public EmployeeEntity(Employee employee) {
+        this.Name = employee.getName();
+        this.active = employee.isActive();
+        this.shift = employee.getShift();
+
     }
     public Long getEmployeeId() {return employeeId;}
     public void setEmployeeId(Long employeeId) {this.employeeId = employeeId;}
     public String getName() {return Name;}
     public void setName(String name) {this.Name = name;}
-    public String getActive() {return active;}
-    public void setActive(String active) {this.active = active;}
+    public boolean isActive() {return active;}
+    public void activate() {this.active = true;}
+    public void deactivate() {this.active = false;}
+    public List<OrderEntity> getOrders() { return orders; }
+    public void setOrders(List<OrderEntity> orders) { this.orders = orders; }
 
 }
