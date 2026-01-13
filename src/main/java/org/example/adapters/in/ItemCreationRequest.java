@@ -1,12 +1,34 @@
 package org.example.adapters.in;
 
-// DTO for now
+
 public class ItemCreationRequest {
     public String sku;
     public String name;
     public String location;
 
-    // Ensure you have a public no-arg constructor if using private fields/setters,
-    // but public fields (as shown) often suffice for DTOs.
     public ItemCreationRequest() {}
+
+    public String getSku() {
+        return sku;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
 }

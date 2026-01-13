@@ -1,11 +1,12 @@
 package org.example.adapters.in;
 
-
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import io.quarkus.cache.CacheResult;
+import io.quarkus.cache.CacheKey;
 import org.example.core.domain.Employee;
 import org.example.core.domain.Item;
 import org.example.core.domain.Order;
@@ -13,8 +14,6 @@ import org.example.core.domain.OrderItem;
 import org.example.core.results.NoContentResult;
 
 import java.util.List;
-// NEW LINE REQUIRED: Import the DTO from the same package
-//import org.example.adapters.ItemCreationRequest;
 
 @Path("/warehouse")
 @Produces(MediaType.APPLICATION_JSON)
@@ -24,79 +23,53 @@ public class WareHouseController {
     @Inject
     WarehouseFacade facade;
 
-
-    // POST/items: Create a new Item
     @Path("/item")
     @POST
     public Response createItem(ItemCreationRequest request){
-            NoContentResult result = facade.createItem(request);
-
-            // if (result.isError())
+        facade.createItem(request);
         return Response.status(Response.Status.CREATED).build();
     }
 
     @Path("/items")
     @GET
     public Response findAllItems() {
-
-
-        List<Item> result= (List<Item>) facade.findAllItems();
+        List<Item> result = (List<Item>) facade.findAllItems();
         return Response.ok(new GenericEntity<List<Item>>(result) {}).build();
-
     }
 
     @Path("/order")
     @POST
     public Response createOrder(OrderCreationRequest request){
-
-
-
         NoContentResult result = this.facade.createOrder(request);
-
-        // Return 201 created
-        return Response.status(Response.Status.CREATED)
-                .entity(result)
-                .build();
-
+        return Response.status(Response.Status.CREATED).entity(result).build();
     }
 
     @Path("/order/{id}")
     @GET
-    public Response findOrderById(@PathParam("id") Long id){
-
+    public Response findOrderById(@PathParam("id") @CacheKey Long id){
         Order order = facade.findAllOrder(id);
-
         if(order == null){
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-
         return Response.ok(order).build();
     }
 
     @Path("order/{id}/items")
     @POST
     public Response addOrderItems(@PathParam("id") Long id, OrderItemCreationRequest request) {
-
         NoContentResult result = this.facade.createOrderItem(id, request);
-
         if (result.hasError()) {
-            // Return the actual error code (409, 404, etc.) instead of hardcoded 400
-            return Response.status(result.getErrorCode())
-                    .entity(result) // Return the result so you can see the message in Postman
-                    .build();
+            return Response.status(result.getErrorCode()).entity(result).build();
         }
-
         return Response.status(Response.Status.CREATED).entity(result).build();
     }
+
     @Path("orderItem/{id}/pick")
     @PUT
     public Response pickOrderItem(@PathParam("id") Long id, OrderItemPickRequest request){
-
         NoContentResult result = this.facade.pickOrderItem(id, request);
         if (result.hasError()) {
-            return Response.status(result.getErrorCode())
-                    .entity(result)
-                    .build();
+            return Response.status(result.getErrorCode()).entity(result).build();
         }
         return Response.status(Response.Status.ACCEPTED).entity(result).build();
     }
@@ -104,20 +77,26 @@ public class WareHouseController {
     @Path("employee")
     @POST
     public Response createEmployee(EmployeeCreationObject request) {
-
         NoContentResult result = this.facade.createEmployee(request);
-
         return Response.status(Response.Status.CREATED).entity(result).build();
+    }
+
+    @Path("/employee/{id}")
+    @GET
+    public Response findEmployeeById(@PathParam("id") @CacheKey Long id) {
+        Employee employee = facade.findEmployeeById(id);
+        if (employee == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(employee).build();
     }
 
     @Path("order/{orderid}/assign/{employeeId}")
     @PUT
-    public Response assignOrder(@PathParam("orderid")Long id,@PathParam("employeeId")Long employeeId){
+    public Response assignOrder(@PathParam("orderid") Long id, @PathParam("employeeId") Long employeeId){
         NoContentResult result = this.facade.assignOrder(id, employeeId);
         if (result.hasError()) {
-            return Response.status(result.getErrorCode())
-                    .entity(result)
-                    .build();
+            return Response.status(result.getErrorCode()).entity(result).build();
         }
         return Response.ok(result).build();
     }
@@ -125,81 +104,23 @@ public class WareHouseController {
     @Path("/order/{id}/complete")
     @PUT
     public Response completeOrder(@PathParam("id") Long id, CompletionRequest request) {
-        // request contains the finalStatus (DONE or FAILED)
         NoContentResult result = facade.completeOrder(id, request);
-
         if (result.hasError()) {
             return Response.status(result.getErrorCode()).entity(result).build();
         }
-
         return Response.ok(result).build();
     }
 
-    @Path("orderItem/{id}")
-    @GET
-    public Response findOrderItemById(@PathParam("id") Long id){
-
-        OrderItem orderItem = this.facade.findById(id);
-        if(orderItem == null){
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(orderItem).build();
-    }
-    // DELETE /item/{sku}: Remove an item by SKU
-    @Path("/item/{sku}")
-    @DELETE
-    public Response deleteItem(@PathParam("sku") String sku) {
-        NoContentResult result = facade.deleteItem(sku);
-        if (result.hasError()) {
-            return Response.status(result.getErrorCode()).entity(result).build();
-        }
-        return Response.noContent().build(); // HTTP 204
-    }
-
-    // DELETE /order/{id}: Remove an order
-    @Path("/order/{id}")
-    @DELETE
-    public Response deleteOrder(@PathParam("id") Long id) {
-        NoContentResult result = facade.deleteOrder(id);
-        if (result.hasError()) {
-            return Response.status(result.getErrorCode()).entity(result).build();
-        }
-        return Response.noContent().build(); // HTTP 204
-    }
-
-    // DELETE /employee/{id}: Remove an employee
-    @Path("/employee/{id}")
-    @DELETE
-    public Response deleteEmployee(@PathParam("id") Long id) {
-        NoContentResult result = facade.deleteEmployee(id);
-        if (result.hasError()) {
-            return Response.status(result.getErrorCode()).entity(result).build();
-        }
-        return Response.noContent().build(); // HTTP 204
-    }
-
-    // DELETE /orderItem/{id}: Remove a specific item from an order
-    @Path("/orderItem/{id}")
-    @DELETE
-    public Response deleteOrderItem(@PathParam("id") Long id) {
-        NoContentResult result = facade.deleteOrderItem(id);
-        if (result.hasError()) {
-            return Response.status(result.getErrorCode()).entity(result).build();
-        }
-        return Response.noContent().build(); // HTTP 204
-    }
-
     @Path("/item/{sku}")
     @GET
-    public Response findItemBySku(@PathParam("sku") String sku) {
+    public Response findItemBySku(@PathParam("sku") @CacheKey String sku) {
         Item item = facade.loadItem(sku);
-
         if (item == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-
         return Response.ok(item).build();
     }
+
     @Path("/employee/{id}")
     @PUT
     public Response updateEmployee(@PathParam("id") Long id, EmployeeCreationObject request) {
@@ -209,16 +130,6 @@ public class WareHouseController {
                 Response.ok().build();
     }
 
-    @Path("/orderItem/{id}")
-    @PUT
-    public Response updateOrderItem(@PathParam("id") Long id, OrderItemCreationRequest request) {
-        NoContentResult result = facade.updateOrderItem(id, request);
-        return result.hasError() ?
-                Response.status(result.getErrorCode()).entity(result).build() :
-                Response.ok().build();
-    }
-
-    // PUT /warehouse/item/{sku}: Update an existing item
     @Path("/item/{sku}")
     @PUT
     public Response updateItem(@PathParam("sku") String sku, ItemCreationRequest request) {
@@ -226,10 +137,9 @@ public class WareHouseController {
         if (result.hasError()) {
             return Response.status(result.getErrorCode()).entity(result).build();
         }
-        return Response.ok().build(); // HTTP 200
+        return Response.ok().build();
     }
 
-    // PUT /warehouse/order/{id}: Update order details
     @Path("/order/{id}")
     @PUT
     public Response updateOrder(@PathParam("id") Long id, OrderCreationRequest request) {
@@ -237,23 +147,18 @@ public class WareHouseController {
         if (result.hasError()) {
             return Response.status(result.getErrorCode()).entity(result).build();
         }
-        return Response.ok().build(); // HTTP 200
+        return Response.ok().build();
     }
+
     @Path("/employee/{id}")
-    @GET
-    public Response findEmployeeById(@PathParam("id") Long id) {
-        Employee employee = facade.findEmployeeById(id);
-
-        if (employee == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+    @DELETE
+    public Response deleteEmployee(@PathParam("id") Long id) {
+        NoContentResult result = facade.deleteEmployee(id);
+        if (result.hasError()) {
+            return Response.status(result.getErrorCode()).entity(result).build();
         }
-
-        return Response.ok(employee).build();
+        return Response.noContent().build();
     }
-
-
-
-
 }
 
 

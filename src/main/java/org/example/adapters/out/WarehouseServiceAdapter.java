@@ -5,13 +5,12 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.transaction.Transactional;
-import org.example.core.domain.Employee;
-import org.example.core.domain.Item;
-import org.example.core.domain.Order;
-import org.example.core.domain.OrderItem;
+import org.example.core.domain.*;
 import org.example.core.results.NoContentResult;
 import org.example.persistence.*;
 import org.example.ports.out.*;
+import org.example.core.domain.OrderStatus;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -378,14 +377,35 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
             // 1. Find the Entity in MariaDB
             EmployeeEntity entity = em.find(EmployeeEntity.class, employeeId);
 
+            // ADD THIS DEBUG OUTPUT
+            System.out.println("=== DEBUG ===");
+            System.out.println("Found entity: " + (entity != null));
+            if (entity != null) {
+                System.out.println("Entity ID: " + entity.getId());
+                System.out.println("Entity Name: " + entity.getName());
+                System.out.println("Entity Active: " + entity.isActive());
+                System.out.println("Entity Shift: " + entity.getShift());
+            }
+            System.out.println("=============");
+
             if (entity == null) {
                 return null;
             }
 
             // 2. Map Entity to Domain
-            // Note: Ensure your WarehouseMapper has a toDomain(EmployeeEntity) method
-            return WarehouseMapper.toDomain(entity);
+            Employee employee = WarehouseMapper.toDomain(entity);
+
+            // ADD THIS DEBUG OUTPUT TOO
+            System.out.println("=== MAPPED EMPLOYEE ===");
+            System.out.println("Employee ID: " + employee.getId());
+            System.out.println("Employee Name: " + employee.getName());
+            System.out.println("Employee Active: " + employee.isActive());
+            System.out.println("Employee Shift: " + employee.getShift());
+            System.out.println("======================");
+
+            return employee;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("Failed to read employee: " + e.getMessage());
         }
     }

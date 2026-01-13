@@ -3,13 +3,12 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.example.adapters.out.WarehouseServiceAdapter;
-import org.example.core.domain.Item;
 import org.example.core.domain.Order;
 import org.example.core.domain.OrderItem;
 import org.example.persistence.EmployeeEntity;
 import org.example.persistence.ItemEntity;
 import org.example.persistence.OrderEntity;
-import org.example.persistence.OrderStatus;
+import org.example.core.domain.OrderStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -82,7 +81,7 @@ public class WarehousePersistenceTest {
 
         // 3. ACTION: Use the adapter to assign the order
         // This triggers your logic to change status to IN_PROGRESS
-        adapter.updateOrder(order.getOrder_id(), employee.getEmployeeId());
+        adapter.updateOrder(order.getOrder_id(), employee.getId());
 
         // 4. SYNC: Flush and Clear to force a fresh read from MariaDB
         em.flush();

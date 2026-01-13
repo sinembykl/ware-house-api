@@ -2,10 +2,9 @@ package org.example.persistence;
 
 import jakarta.persistence.*;
 import org.example.core.domain.Order;
-import org.example.core.domain.OrderItem;
+import org.example.core.domain.OrderStatus;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 
 @Entity

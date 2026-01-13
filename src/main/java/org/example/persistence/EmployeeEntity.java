@@ -4,11 +4,10 @@ import jakarta.persistence.*;
 import org.example.core.domain.Employee;
 
 import java.util.List;
-
 @Entity
 public class EmployeeEntity {
     /*
-    Employee — represents a warehouse worker.
+    Employee – represents a warehouse worker.
     Attributes: id, name, active, shift
     Rule: Only active employees can receive assignments
 
@@ -18,7 +17,7 @@ public class EmployeeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long employeeId;
+    private Long id;  // Changed from employeeId to id
 
     @Column
     private String name;
@@ -30,28 +29,59 @@ public class EmployeeEntity {
     private String shift;
 
     // One Employee can handle many Orders
-    @OneToMany(mappedBy = "employee",cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
     private List<OrderEntity> orders;
 
     public EmployeeEntity() {
     }
+
     public EmployeeEntity(Employee employee) {
         this.name = employee.getName();
         this.active = employee.isActive();
         this.shift = employee.getShift();
-
     }
 
-    public Long getId() {return employeeId;}
-    public void setId(Long employeeId) {this.employeeId = employeeId;}
-    public String getName() {return name;}
-    public void setName(String name) {this.name = name;}
-    public boolean isActive() {return active;}
-    public void activate() {this.active = true;}
-    public void deactivate() {this.active = false;}
-    public List<OrderEntity> getOrders() { return orders; }
-    public void setOrders(List<OrderEntity> orders) { this.orders = orders; }
-    public void setShift(String shift) {this.shift = shift;}
-    public String getShift() {return shift;}
+    public Long getId() {
+        return id;
+    }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void activate() {
+        this.active = true;
+    }
+
+    public void deactivate() {
+        this.active = false;
+    }
+
+    public List<OrderEntity> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<OrderEntity> orders) {
+        this.orders = orders;
+    }
+
+    public void setShift(String shift) {
+        this.shift = shift;
+    }
+
+    public String getShift() {
+        return shift;
+    }
 }

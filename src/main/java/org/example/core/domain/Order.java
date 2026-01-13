@@ -1,8 +1,5 @@
 package org.example.core.domain;
 
-import org.example.persistence.OrderItemEntity;
-import org.example.persistence.OrderStatus;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

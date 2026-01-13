@@ -8,7 +8,7 @@ import org.example.core.domain.Order;
 import org.example.core.domain.OrderItem;
 import org.example.core.logic.WarehouseService;
 import org.example.core.results.NoContentResult;
-import org.example.persistence.OrderStatus;
+import org.example.core.domain.OrderStatus;
 import org.example.ports.out.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
