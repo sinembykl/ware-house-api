@@ -19,7 +19,7 @@ import java.util.List;
 We are implementing Inner Port and accessing to Outer Port
  */
 @ApplicationScoped // Necessary for Quarkus to manage and inject this class
-public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase, ILoadAllItemUseCase, ILoadOrder, ICreateOrderItem, ICreateEmployee, IAssignOrder, ICompleteOrder, IOrderItemPickUseCase {
+public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase, ILoadItemUseCase, ILoadOrder, ICreateOrderItem, ICreateEmployee, IAssignOrder, ICompleteOrder, IOrderItemPickUseCase, IDeleteDomainUseCase, IPutDomainUseCase {
     /*
     The @ApplicationScoped and @Inject annotations allow Quarkus to manage the instance of ItemManager
     and provide it with the necessary dependency (ItemService) when the API calls the system.
@@ -27,17 +27,18 @@ public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase
      */
     private IItemRepository itemRepository;
     private IPersistOrderPort persistOrderPort;
-    private IReadItemsPort readItemsPort;
+    private IReadItemPort readItemsPort;
     private IReadOrderPort readOrderPort;
     private IOrderItemRepository orderItemRepository;
     private IPersistEmployeePort persistEmployeePort;
     private IAssignOrderOutPort assignOrderOutPort;
     private ICompleteOrderOutPort completeOrderOutPort;
     private IOrderItemPickOutPort orderItemPickOutPort;
-
+    private IDeleteEntityOutPort deleteEntityOutPort;
+    private IUpdateEntityOutPort updateEntityOutPort;
     @Inject
     public WarehouseService(IItemRepository itemRepository, IPersistOrderPort persistOrderPort,
-                            IReadItemsPort readItemsPort, IReadOrderPort readOrderPort, IOrderItemRepository orderItemRepository, IPersistEmployeePort persistEmployeePort, IAssignOrderOutPort assignOrderOutPort, ICompleteOrderOutPort completeOrderOutPort, IOrderItemPickOutPort orderItemPickOutPort ) {
+                            IReadItemPort readItemsPort, IReadOrderPort readOrderPort, IOrderItemRepository orderItemRepository, IPersistEmployeePort persistEmployeePort, IAssignOrderOutPort assignOrderOutPort, ICompleteOrderOutPort completeOrderOutPort, IOrderItemPickOutPort orderItemPickOutPort, IDeleteEntityOutPort deleteEntityOutPort, IUpdateEntityOutPort updateEntityOutPort) {
         this.itemRepository = itemRepository;
         this.persistOrderPort = persistOrderPort;
         this.readItemsPort = readItemsPort;
@@ -47,6 +48,8 @@ public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase
         this.assignOrderOutPort = assignOrderOutPort;
         this.completeOrderOutPort = completeOrderOutPort;
         this.orderItemPickOutPort = orderItemPickOutPort;
+        this.deleteEntityOutPort = deleteEntityOutPort;
+        this.updateEntityOutPort = updateEntityOutPort;
     }
 
     @Override
@@ -108,7 +111,7 @@ public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase
         }
 
         // 3. If check passes, proceed to save [cite: 87, 89]
-        return this.orderItemRepository.createOrderItem(orderItem);
+        return this.orderItemRepository.saveOrderItem(orderItem);
     }
 
     @Override
@@ -117,6 +120,7 @@ public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase
         return this.persistEmployeePort.persistEmployee(employee);
     }
     @Override
+    @Transactional
     public NoContentResult assignOrder(Long id, Long employeeId) {
         return this.assignOrderOutPort.updateOrder(id, employeeId);
     }
@@ -169,6 +173,96 @@ public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase
         return this.orderItemRepository.findById(id);
     }
 
+    @Override
+    @Transactional
+    public NoContentResult deleteOrder(Long orderId) {
+        Order order = readOrderPort.readOrder(orderId);
+        if (order == null) {
+            return new NoContentResult(404, "Order not found");
+        }
+        // Business Rule: Only delete orders in CREATED state
+        if (order.getStatus() != OrderStatus.CREATED) {
+            return new NoContentResult(409, "Cannot delete order in progress");
+        }
+        deleteEntityOutPort.deleteOrderEntity(orderId);
+        return new NoContentResult();
+    }
+
+    @Override
+    @Transactional
+    public NoContentResult deleteItem(String sku) {
+        if (!itemRepository.existsBySku(sku)) {
+            return new NoContentResult(404, "Item not found");
+        }
+        deleteEntityOutPort.deleteItemEntity(sku);
+        return new NoContentResult();
+    }
+
+    @Override
+    @Transactional
+    public NoContentResult deleteEmployee(Long employeeId) {
+        deleteEntityOutPort.deleteEmployeeEntity(employeeId);
+        return new NoContentResult();
+    }
+
+    @Override
+    @Transactional
+    public NoContentResult deleteOrderItem(Long orderItemId) {
+        deleteEntityOutPort.deleteOrderItemEntity(orderItemId);
+        return new NoContentResult();
+    }
+
+    @Override
+    public Item loadItem(String sku) {
+        // 1. Logic: Check if SKU is valid/exists
+        if (sku == null || sku.isEmpty()) {
+            return null;
+        }
+
+        // 2. Call the Outer Port (IReadItemPort) to fetch the data
+        return this.readItemsPort.readItemBySku(sku);
+    }
+
+    @Override
+    @Transactional
+    public NoContentResult updateItem(String sku, Item item) {
+        if (!itemRepository.existsBySku(sku)) {
+            return new NoContentResult(404, "Item not found");
+        }
+        updateEntityOutPort.updateItemEntity(sku, item);
+        return new NoContentResult();
+    }
+
+    @Override
+    @Transactional
+    public NoContentResult updateOrder(Long id, Order order) {
+        Order existing = readOrderPort.readOrder(id);
+        if (existing == null) {
+            return new NoContentResult(404, "Order not found");
+        }
+        updateEntityOutPort.updateOrderEntity(id, order);
+        return new NoContentResult();
+    }
+    @Override
+    @Transactional
+    public NoContentResult updateEmployee(Long id, Employee employee) {
+        // Validation logic can be added here (e.g., check if name is empty)
+        updateEntityOutPort.updateEmployeeEntity(id, employee);
+        return new NoContentResult();
+    }
+
+    @Override
+    @Transactional
+    public NoContentResult updateOrderItem(Long id, OrderItem orderItem) {
+        OrderItem existing = orderItemRepository.findById(id);
+        if (existing == null) {
+            return new NoContentResult(404, "OrderItem not found");
+        }
+
+        // You might want to check if the parent order is still in CREATED state
+        updateEntityOutPort.updateOrderItemEntity(id, orderItem);
+        return new NoContentResult();
+    }
 
 
 }

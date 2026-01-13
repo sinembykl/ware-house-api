@@ -3,20 +3,17 @@ package org.example.adapters.out;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.transaction.Transactional;
 import org.example.core.domain.Employee;
 import org.example.core.domain.Item;
 import org.example.core.domain.Order;
 import org.example.core.domain.OrderItem;
-import org.example.core.ports.in.ICompleteOrder;
-import org.example.core.ports.in.ICreateOrderItem;
 import org.example.core.ports.out.*;
 import org.example.core.results.NoContentResult;
 import org.example.persistence.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /*
@@ -24,7 +21,7 @@ Implements the Outer Port and performs the database save.
  */
 @ApplicationScoped
 public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPort,
-        IReadItemsPort, IReadOrderPort, IOrderItemRepository, IPersistEmployeePort, IAssignOrderOutPort, ICompleteOrderOutPort, IOrderItemPickOutPort{
+        IReadItemPort, IReadOrderPort, IOrderItemRepository, IPersistEmployeePort, IAssignOrderOutPort, ICompleteOrderOutPort, IOrderItemPickOutPort,IDeleteEntityOutPort, IUpdateEntityOutPort{
 
     @Inject
     EntityManager em;
@@ -43,9 +40,9 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
             item.setItem_id(itemEntity.getItem_id());
             return new NoContentResult();
 
-        } catch (Exception e){
+        } catch (Exception e) {
             NoContentResult noContentResult = new NoContentResult();
-            noContentResult.setError(500,  e.getMessage());
+            noContentResult.setError(500, e.getMessage());
             return noContentResult;
         }
 
@@ -53,6 +50,7 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
     }
 
     @Override
+    @Transactional
     public boolean existsBySku(String sku) {
 
         return !em.createQuery("select i from ItemEntity i where i.sku= :sku", ItemEntity.class)
@@ -65,7 +63,7 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
 
     @Override
     @Transactional
-    public NoContentResult persistOrder(Order order){
+    public NoContentResult persistOrder(Order order) {
         try {
             OrderEntity orderEntity = new OrderEntity(order);
             em.persist(orderEntity);
@@ -74,7 +72,7 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
             noContentResult.setId(orderEntity.getOrder_id());
 
             return noContentResult;
-        } catch (Exception e){
+        } catch (Exception e) {
 
             NoContentResult noContentResult = new NoContentResult();
 
@@ -83,7 +81,9 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
         }
 
     }
+
     @Override
+    @Transactional
     public List<Item> readItems() {
         return em.createQuery("select i from ItemEntity i", ItemEntity.class)
                 .getResultStream()
@@ -112,9 +112,10 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
             throw new RuntimeException("Database read failure: " + e.getMessage());
         }
     }
+
     @Override
     @Transactional
-    public NoContentResult createOrderItem(OrderItem orderItem) {
+    public NoContentResult saveOrderItem(OrderItem orderItem) {
         try {
             // 1. Find the Parent OrderEntity by ID
             // We need this to tell JPA which Order this item belongs to
@@ -165,8 +166,8 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
 
     @Override
     @Transactional
-    public NoContentResult persistEmployee(Employee employee){
-        try{
+    public NoContentResult persistEmployee(Employee employee) {
+        try {
             EmployeeEntity employeeEntity = new EmployeeEntity(employee);
             em.persist(employeeEntity);
             employee.setId(employee.getId());
@@ -175,7 +176,7 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
             return noContentResult;
         } catch (Exception e) {
             NoContentResult noContentResult = new NoContentResult();
-            noContentResult.setError(500,  e.getMessage());
+            noContentResult.setError(500, e.getMessage());
             return noContentResult;
         }
 
@@ -189,7 +190,7 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
             EmployeeEntity employeeEntity = em.find(EmployeeEntity.class, EmployeeId);
             OrderEntity orderEntity = em.find(OrderEntity.class, id);
 
-            if(orderEntity != null && employeeEntity != null){
+            if (orderEntity != null && employeeEntity != null) {
 
                 orderEntity.setEmployee(employeeEntity);
                 //UC-04
@@ -202,7 +203,7 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
                 return error;
             }
 
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("Failed tp assign employee: " + e.getMessage());
         }
     }
@@ -270,8 +271,103 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
             return error;
         }
     }
-
+    @Override
+    @Transactional
+    public void deleteOrderEntity(Long orderId) {
+        OrderEntity entity = em.find(OrderEntity.class, orderId);
+        if (entity != null) em.remove(entity);
     }
+
+    @Override
+    @Transactional
+    public void deleteItemEntity(String sku) {
+        // Query required if SKU is not the primary key
+        em.createQuery("DELETE FROM ItemEntity i WHERE i.sku = :sku")
+                .setParameter("sku", sku)
+                .executeUpdate();
+    }
+
+    @Override
+    @Transactional
+    public void deleteEmployeeEntity(Long employeeId) {
+        EmployeeEntity entity = em.find(EmployeeEntity.class, employeeId);
+        if (entity != null) em.remove(entity);
+    }
+
+    @Override
+    @Transactional
+    public void deleteOrderItemEntity(Long orderItemId) {
+        OrderItemEntity entity = em.find(OrderItemEntity.class, orderItemId);
+        if (entity != null) em.remove(entity);
+    }
+
+    @Override
+    @Transactional
+    public Item readItemBySku(String sku) {
+        try {
+            // Query the database for the ItemEntity
+            ItemEntity entity = em.createQuery(
+                            "SELECT i FROM ItemEntity i WHERE i.sku = :sku", ItemEntity.class)
+                    .setParameter("sku", sku)
+                    .getSingleResult();
+
+            // Convert the Entity to Domain using your mapper
+            return WarehouseMapper.toDomain(entity);
+        } catch (NoResultException e) {
+            return null; // Return null if the SKU is not found
+        }
+    }
+    @Override
+    @Transactional
+    public void updateItemEntity(String sku, Item item) {
+        // 1. Retrieve the MANAGED entity
+        ItemEntity entity = em.createQuery("SELECT i FROM ItemEntity i WHERE i.sku = :sku", ItemEntity.class)
+                .setParameter("sku", sku)
+                .getSingleResult();
+
+        if (entity != null) {
+            // 2. Set the values
+            entity.setItem_name(item.getName());
+            entity.setLocation(item.getLocation());
+
+            // 3. FORCE the SQL UPDATE command to run immediately
+            // This ensures MariaDB receives the data before the response is sent.
+            em.flush();
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateOrderEntity(Long id, Order order) {
+        OrderEntity entity = em.find(OrderEntity.class, id);
+        if (entity != null) {
+            entity.setStore(order.getStore());
+            // Map other fields as necessary
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateEmployeeEntity(Long id, Employee employee) {
+        EmployeeEntity entity = em.find(EmployeeEntity.class, id);
+        if (entity != null) {
+            entity.setName(employee.getName());
+            entity.activate();
+            entity.setShift(employee.getShift());
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateOrderItemEntity(Long id, OrderItem orderItem) {
+        OrderItemEntity entity = em.find(OrderItemEntity.class, id);
+        if (entity != null) {
+            entity.setQtyRequired(orderItem.getQtyRequired());
+            entity.setQtyPicked(orderItem.getQtyPicked());
+        }
+    }
+
+}
 
 
 

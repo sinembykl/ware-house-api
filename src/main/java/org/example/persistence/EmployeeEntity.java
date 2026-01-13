@@ -52,5 +52,7 @@ public class EmployeeEntity {
     public void deactivate() {this.active = false;}
     public List<OrderEntity> getOrders() { return orders; }
     public void setOrders(List<OrderEntity> orders) { this.orders = orders; }
+    public void setShift(String shift) {this.shift = shift;}
+    public String getShift() {return shift;}
 
 }

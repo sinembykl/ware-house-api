@@ -4,7 +4,9 @@ import org.example.core.domain.Item;
 
 import java.util.List;
 
-public interface ILoadAllItemUseCase {
+public interface ILoadItemUseCase {
 
     public List<Item> loadAllItems();
+
+    Item loadItem(String sku);
 }

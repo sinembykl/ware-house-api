@@ -5,7 +5,7 @@ import org.example.core.results.NoContentResult;
 
 public interface IOrderItemRepository {
 
-    public NoContentResult createOrderItem(OrderItem orderItem);
+    public NoContentResult saveOrderItem(OrderItem orderItem);
 
     OrderItem findById(Long id); // NEW: To fetch existing data for picking
 }

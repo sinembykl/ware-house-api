@@ -12,6 +12,7 @@ public class Item {
         this.location = location;
         this.name = name;
     }
+    public Item() {}
     public long getItem_id() {
         return item_id;
     }

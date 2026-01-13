@@ -4,6 +4,7 @@ import org.example.persistence.OrderItemEntity;
 import org.example.persistence.OrderStatus;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Order {
@@ -24,14 +25,14 @@ public class Order {
 
 
     // One Order can have more than 1 OrderEntity
-    List<OrderItem> orderItems;
+    List<OrderItem> orderItems = new ArrayList<>();
 
     public Order( String store, int unit) {
         this.store = store;
         this.unit = unit;
         this.status = OrderStatus.CREATED;
     }
-    Order() {}
+    public Order() {}
 
     public long getOrder_id(){
         return order_id;
@@ -62,6 +63,9 @@ public class Order {
 
     // Ensure the getter returns the same list for the Mapper/Jackson
     public List<OrderItem> getOrderItems() {
+        if (orderItems == null) {
+            orderItems = new ArrayList<>();
+        }
         return orderItems;
     }
 
