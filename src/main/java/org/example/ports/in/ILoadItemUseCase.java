@@ -9,4 +9,6 @@ public interface ILoadItemUseCase {
     public List<Item> loadAllItems();
 
     Item loadItem(String sku);
+
+    List<Item> findItems(String location, int limit, int offset);
 }

@@ -72,6 +72,11 @@ public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase
         return this.readItemsPort.readItemBySku(sku);
     }
 
+    @Override
+    public List<Item> findItems(String location, int limit, int offset) {
+        // delegiert an Outport
+        return readItemsPort.readItems(location, limit, offset);
+    }
     @CacheResult(cacheName = "items")
     @Override
     public List<Item> loadAllItems() {

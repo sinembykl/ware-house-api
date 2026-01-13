@@ -80,6 +80,27 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
         }
 
     }
+    @Override
+    @Transactional
+    public List<Item> readItems(String location, int limit, int offset) {
+        StringBuilder queryBuilder = new StringBuilder("select i from ItemEntity i"); //
+
+        if (location != null && !location.isBlank()) {
+            queryBuilder.append(" where i.location = :location"); //
+        }
+
+        var q = em.createQuery(queryBuilder.toString(), ItemEntity.class);
+
+        if (location != null && !location.isBlank()) {
+            q.setParameter("location", location);
+        }
+
+        return q.setFirstResult(offset)
+                .setMaxResults(limit)
+                .getResultStream()
+                .map(WarehouseMapper::toDomain)
+                .collect(Collectors.toList());
+    }
 
     @Override
     @Transactional

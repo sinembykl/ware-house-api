@@ -112,6 +112,11 @@ public class WarehouseFacade  {
         return this.warehouseService.getEmployee(id);
     }
 
+    public List<Item> findItems(String location, int limit, int offset) {
+        return warehouseService.findItems(location, limit, offset);
+    }
+
+
 
 }
 

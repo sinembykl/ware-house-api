@@ -26,14 +26,29 @@ public class WareHouseController {
     @Path("/item")
     @POST
     public Response createItem(ItemCreationRequest request){
-        facade.createItem(request);
+        NoContentResult result = facade.createItem(request);
+        // 2. Check if the service returned an error (like SKU already exists)
+        if (result.hasError()) {
+            return Response.status(result.getErrorCode())
+                    .entity(result) // This sends the "already exists" message to the user
+                    .build();
+        }
         return Response.status(Response.Status.CREATED).build();
     }
 
     @Path("/items")
     @GET
-    public Response findAllItems() {
-        List<Item> result = (List<Item>) facade.findAllItems();
+    public Response findAllItems(
+            @QueryParam("location") String location,
+            @QueryParam("limit") @DefaultValue("20") int limit,
+            @QueryParam("offset") @DefaultValue("0") int offset
+    ) {
+        // clamp (sicher)
+        if (limit < 1) limit = 1;
+        if (limit > 100) limit = 100;
+        if (offset < 0) offset = 0;
+
+        List<Item> result = facade.findItems(location, limit, offset);
         return Response.ok(new GenericEntity<List<Item>>(result) {}).build();
     }
 
