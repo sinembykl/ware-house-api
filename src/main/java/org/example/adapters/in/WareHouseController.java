@@ -56,18 +56,47 @@ public class WareHouseController {
     @POST
     public Response createOrder(OrderCreationRequest request){
         NoContentResult result = this.facade.createOrder(request);
-        return Response.status(Response.Status.CREATED).entity(result).build();
+
+        if (result.hasError()) {
+            return Response.status(result.getErrorCode()).entity(result).build();
+        }
+
+        String location = "/warehouse/order/" + result.getId();
+
+        Links body = new Links()
+                .add("self", location)
+                .add("addItem", location + "/items")
+                .add("assign", location + "/assign/{employeeId}")
+                .add("complete", location + "/complete");
+
+        return Response.status(Response.Status.CREATED)
+                .header("Location", location)
+                .entity(body)
+                .build();
     }
+
 
     @Path("/order/{id}")
     @GET
-    public Response findOrderById(@PathParam("id") @CacheKey Long id){
+    public Response findOrderById(@PathParam("id") Long id){
         Order order = facade.findAllOrder(id);
+
         if(order == null){
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok(order).build();
+
+        OrderResponse resp = OrderResponse.from(order);
+
+        String base = "/warehouse/order/" + order.getOrder_id();
+        resp._links
+                .add("self", base)
+                .add("addItem", base + "/items")
+                .add("complete", base + "/complete")
+                .add("assign", base + "/assign/{employeeId}");
+
+        return Response.ok(resp).build();
     }
+
 
     @Path("order/{id}/items")
     @POST
