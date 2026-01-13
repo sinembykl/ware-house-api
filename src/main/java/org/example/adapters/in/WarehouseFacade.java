@@ -7,10 +7,7 @@ import org.example.core.domain.Item;
 import org.example.core.domain.Order;
 import org.example.core.domain.OrderItem;
 import org.example.core.logic.WarehouseService;
-import org.example.core.ports.in.*;
-import org.example.core.ports.out.IOrderItemPickOutPort;
 import org.example.core.results.NoContentResult;
-import org.example.persistence.OrderStatus;
 
 import java.util.List;
 
@@ -110,6 +107,9 @@ public class WarehouseFacade  {
 
         // 2. Delegate to the Inner Port (Inbound Port)
         return this.warehouseService.updateOrder(id, order);
+    }
+    public Employee findEmployeeById(Long id) {
+        return this.warehouseService.getEmployee(id);
     }
 
 

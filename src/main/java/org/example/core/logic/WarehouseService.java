@@ -7,10 +7,10 @@ import org.example.core.domain.Employee;
 import org.example.core.domain.Item;
 import org.example.core.domain.Order;
 import org.example.core.domain.OrderItem;
-import org.example.core.ports.in.*;
-import org.example.core.ports.out.*;
 import org.example.core.results.NoContentResult;
 import org.example.persistence.OrderStatus;
+import org.example.ports.in.*;
+import org.example.ports.out.*;
 
 import java.util.List;
 
@@ -19,7 +19,7 @@ import java.util.List;
 We are implementing Inner Port and accessing to Outer Port
  */
 @ApplicationScoped // Necessary for Quarkus to manage and inject this class
-public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase, ILoadItemUseCase, ILoadOrder, ICreateOrderItem, ICreateEmployee, IAssignOrder, ICompleteOrder, IOrderItemPickUseCase, IDeleteDomainUseCase, IPutDomainUseCase {
+public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase, ILoadItemUseCase, ILoadOrder, ICreateOrderItem, ICreateGetEmployee, IAssignOrder, ICompleteOrder, IOrderItemPickUseCase, IDeleteDomainUseCase, IPutDomainUseCase {
     /*
     The @ApplicationScoped and @Inject annotations allow Quarkus to manage the instance of ItemManager
     and provide it with the necessary dependency (ItemService) when the API calls the system.
@@ -263,6 +263,13 @@ public class WarehouseService implements ICreateItemUseCase, ICreateOrderUseCase
         updateEntityOutPort.updateOrderItemEntity(id, orderItem);
         return new NoContentResult();
     }
+    @Override
+    @Transactional
+    public Employee getEmployee(Long employeeId) {
+        // Logic: Call the outer port to fetch the employee
+        return this.persistEmployeePort.readEmployee(employeeId);
+    }
+
 
 
 }

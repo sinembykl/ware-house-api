@@ -61,6 +61,23 @@ public class WarehouseMapper {
 
         return item;
     }
+    public static Employee toDomain(EmployeeEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        // Use the domain constructor: Employee(String name, boolean active, int shift)
+        Employee employee = new Employee(
+                entity.getName(),
+                entity.isActive(),
+                entity.getShift()
+        );
+
+        // Don't forget to set the ID so the Domain knows which record it represents
+        employee.setId(entity.getId());
+
+        return employee;
+    }
 
 
 

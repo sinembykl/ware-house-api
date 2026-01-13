@@ -1,4 +1,4 @@
-package org.example.core.ports.out;
+package org.example.ports.out;
 
 
 public interface IDeleteEntityOutPort {

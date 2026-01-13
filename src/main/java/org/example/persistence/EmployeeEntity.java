@@ -1,9 +1,7 @@
 package org.example.persistence;
 
 import jakarta.persistence.*;
-import org.example.adapters.in.OrderCreationRequest;
 import org.example.core.domain.Employee;
-import org.example.core.domain.Order;
 
 import java.util.List;
 
@@ -23,13 +21,13 @@ public class EmployeeEntity {
     private Long employeeId;
 
     @Column
-    private String Name;
+    private String name;
 
     @Column
     private boolean active;
 
     @Column
-    private String shift; //spät, früh
+    private String shift;
 
     // One Employee can handle many Orders
     @OneToMany(mappedBy = "employee",cascade = CascadeType.ALL)
@@ -38,15 +36,16 @@ public class EmployeeEntity {
     public EmployeeEntity() {
     }
     public EmployeeEntity(Employee employee) {
-        this.Name = employee.getName();
+        this.name = employee.getName();
         this.active = employee.isActive();
         this.shift = employee.getShift();
 
     }
-    public Long getEmployeeId() {return employeeId;}
-    public void setEmployeeId(Long employeeId) {this.employeeId = employeeId;}
-    public String getName() {return Name;}
-    public void setName(String name) {this.Name = name;}
+
+    public Long getId() {return employeeId;}
+    public void setId(Long employeeId) {this.employeeId = employeeId;}
+    public String getName() {return name;}
+    public void setName(String name) {this.name = name;}
     public boolean isActive() {return active;}
     public void activate() {this.active = true;}
     public void deactivate() {this.active = false;}

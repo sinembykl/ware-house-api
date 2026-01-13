@@ -107,7 +107,7 @@ public class WareHouseController {
 
         NoContentResult result = this.facade.createEmployee(request);
 
-        return Response.status(Response.Status.CREATED).build();
+        return Response.status(Response.Status.CREATED).entity(result).build();
     }
 
     @Path("order/{orderid}/assign/{employeeId}")
@@ -238,6 +238,17 @@ public class WareHouseController {
             return Response.status(result.getErrorCode()).entity(result).build();
         }
         return Response.ok().build(); // HTTP 200
+    }
+    @Path("/employee/{id}")
+    @GET
+    public Response findEmployeeById(@PathParam("id") Long id) {
+        Employee employee = facade.findEmployeeById(id);
+
+        if (employee == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        return Response.ok(employee).build();
     }
 
 

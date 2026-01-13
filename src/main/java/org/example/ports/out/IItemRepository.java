@@ -1,4 +1,4 @@
-package org.example.core.ports.out;
+package org.example.ports.out;
 
 import org.example.core.domain.Item;
 import org.example.core.results.NoContentResult;

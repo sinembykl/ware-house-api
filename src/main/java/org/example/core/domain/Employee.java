@@ -1,14 +1,13 @@
 package org.example.core.domain;
 
 public class Employee {
-    long id;
-    String name;
-    //String shift;
-    boolean active;
+    private Long id;
+    private String name;
+    private boolean active;
     private String shift;
 
 
-    public Employee(String name, boolean active, String shift) {
+    public Employee( String name, boolean active, String shift) {
         this.name = name;
         this.active = active;
         this.shift = shift;
@@ -17,8 +16,8 @@ public class Employee {
 
     }
 
-    public long getId() {return id;}
-    public void setId(long id) {this.id = id;}
+    public Long getId() {return id;}
+    public void setId(Long id) {this.id = id;}
     public String getName() {return name;}
     public void setName(String name) {this.name = name;}
     public boolean isActive() {return active;}

@@ -9,9 +9,9 @@ import org.example.core.domain.Employee;
 import org.example.core.domain.Item;
 import org.example.core.domain.Order;
 import org.example.core.domain.OrderItem;
-import org.example.core.ports.out.*;
 import org.example.core.results.NoContentResult;
 import org.example.persistence.*;
+import org.example.ports.out.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,7 +21,7 @@ Implements the Outer Port and performs the database save.
  */
 @ApplicationScoped
 public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPort,
-        IReadItemPort, IReadOrderPort, IOrderItemRepository, IPersistEmployeePort, IAssignOrderOutPort, ICompleteOrderOutPort, IOrderItemPickOutPort,IDeleteEntityOutPort, IUpdateEntityOutPort{
+        IReadItemPort, IReadOrderPort, IOrderItemRepository, IPersistEmployeePort, IAssignOrderOutPort, ICompleteOrderOutPort, IOrderItemPickOutPort,IDeleteEntityOutPort, IUpdateEntityOutPort {
 
     @Inject
     EntityManager em;
@@ -170,9 +170,9 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
         try {
             EmployeeEntity employeeEntity = new EmployeeEntity(employee);
             em.persist(employeeEntity);
-            employee.setId(employee.getId());
+            employee.setId(employeeEntity.getId());
             NoContentResult noContentResult = new NoContentResult();
-            noContentResult.setId(employee.getId());
+            noContentResult.setId(employeeEntity.getId());
             return noContentResult;
         } catch (Exception e) {
             NoContentResult noContentResult = new NoContentResult();
@@ -352,8 +352,13 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
         EmployeeEntity entity = em.find(EmployeeEntity.class, id);
         if (entity != null) {
             entity.setName(employee.getName());
-            entity.activate();
+            if (employee.isActive()) {
+                entity.activate();
+            } else {
+                entity.deactivate();
+            }
             entity.setShift(employee.getShift());
+            em.flush(); // Force the change to MariaDB
         }
     }
 
@@ -364,6 +369,24 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
         if (entity != null) {
             entity.setQtyRequired(orderItem.getQtyRequired());
             entity.setQtyPicked(orderItem.getQtyPicked());
+        }
+    }
+    @Override
+    @Transactional
+    public Employee readEmployee(Long employeeId) {
+        try {
+            // 1. Find the Entity in MariaDB
+            EmployeeEntity entity = em.find(EmployeeEntity.class, employeeId);
+
+            if (entity == null) {
+                return null;
+            }
+
+            // 2. Map Entity to Domain
+            // Note: Ensure your WarehouseMapper has a toDomain(EmployeeEntity) method
+            return WarehouseMapper.toDomain(entity);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read employee: " + e.getMessage());
         }
     }
 
