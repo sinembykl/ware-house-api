@@ -27,6 +27,7 @@ public class OrderItemEntity {
 
     // Getters and Setters
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     public int getQtyRequired() { return qtyRequired; }
     public void setQtyRequired(int qtyRequired) { this.qtyRequired = qtyRequired; }
     public int getQtyPicked() { return qtyPicked; }
@@ -38,5 +39,6 @@ public class OrderItemEntity {
     public void setOrder(OrderEntity order) { this.order = order; }
 
     public ItemEntity getItem() { return item; }
+    public void setItemId(Long id) { item.setItem_id(id); }
     public void setItem(ItemEntity item) { this.item = item; }
 }

@@ -37,6 +37,7 @@ public class OrderEntity {
 
     // Getters and Setters
     public Long getOrder_id() { return order_id; }
+    public void setOrder_id(Long order_id) { this.order_id = order_id; }
     public String getStore() { return store; }
     public void setStore(String store) { this.store = store; }
     public int getUnit() { return unit; }
@@ -45,6 +46,7 @@ public class OrderEntity {
     public void setStatus(OrderStatus status) { this.status = status; }
     public EmployeeEntity getEmployee() { return employee; }
     public void setEmployee(EmployeeEntity employee) { this.employee = employee; }
+
 
     // This getter is what was returning null
     public List<OrderItemEntity> getOrderItemEntities() { return orderItemEntities; }
