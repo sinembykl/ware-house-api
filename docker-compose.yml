@@ -1,0 +1,27 @@
+services:
+  mariadb:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: warehouse
+      MARIADB_USER: app
+      MARIADB_PASSWORD: app
+      MARIADB_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      dockerfile: src/main/docker/Dockerfile.jvm
+    environment:
+      QUARKUS_PROFILE: prod
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
