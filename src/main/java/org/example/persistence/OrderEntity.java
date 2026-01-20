@@ -3,8 +3,7 @@ package org.example.persistence;
 import jakarta.persistence.*;
 import org.example.core.domain.Order;
 import org.example.core.domain.OrderStatus;
-
-import java.time.LocalDateTime;
+import java.util.ArrayList; // Necessary import
 import java.util.List;
 
 @Entity
@@ -14,61 +13,42 @@ public class OrderEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long order_id;
 
-    @Column
     private String store;
-
-    @Column
-    private int priority; // 1, 2, 3
-
-    @Column
-    private OrderStatus status;
-
-    @Column
-    private LocalDateTime CreatedAt;
-
-    @Column
     private int unit;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    List<OrderItemEntity> orderItem;
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
 
-
-    // Many Orders can belong to one Employee
     @ManyToOne
-    @JoinColumn(name = "employee_id") // This creates the foreign key in the Order table
+    @JoinColumn(name = "employee_id")
     private EmployeeEntity employee;
 
+    // CRITICAL FIX: Initialize the list to avoid NullPointerException
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<OrderItemEntity> orderItemEntities = new ArrayList<>();
 
-
-    public OrderEntity() {
-
-    }
+    public OrderEntity() {}
 
     public OrderEntity(Order order) {
-        //mapping
         this.store = order.getStore();
-        this.priority = 1;
-        this.status = order.getStatus();
-        CreatedAt = LocalDateTime.now();
         this.unit = order.getUnit();
+        this.status = order.getStatus() != null ? order.getStatus() : OrderStatus.CREATED;
     }
 
-    public Long getOrder_id() {return order_id;}
-    public void setOrder_id(Long order_id) {this.order_id = order_id;}
-    public String getStore() {return store;}
-    public void setStore(String store) {this.store = store;}
-    public int getPriority() {return priority;}
-    public void setPriority(int priority) {this.priority = priority;}
-    public OrderStatus getStatus() {return status;}
-    public void setStatus(OrderStatus status) {this.status = status;}
-    public LocalDateTime getCreatedAt() {return CreatedAt;}
-    public void setCreatedAt(LocalDateTime CreatedAt) {this.CreatedAt = CreatedAt;}
-    public int getUnit() {return unit;}
-    public void setUnit(int unit) {this.unit = unit;}
-    public List<OrderItemEntity> getOrderItemEntities() {return orderItem;}
-    public void setOrderItemEntites(List<OrderItemEntity> orderItemEntities) {this.orderItem = orderItemEntities;}
-
+    // Getters and Setters
+    public Long getOrder_id() { return order_id; }
+    public String getStore() { return store; }
+    public void setStore(String store) { this.store = store; }
+    public int getUnit() { return unit; }
+    public void setUnit(int unit) { this.unit = unit; }
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
     public EmployeeEntity getEmployee() { return employee; }
     public void setEmployee(EmployeeEntity employee) { this.employee = employee; }
 
+    // This getter is what was returning null
+    public List<OrderItemEntity> getOrderItemEntities() { return orderItemEntities; }
+    public void setOrderItemEntities(List<OrderItemEntity> orderItemEntities) {
+        this.orderItemEntities = orderItemEntities;
+    }
 }

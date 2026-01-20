@@ -8,6 +8,7 @@ public class OrderResponse {
     public String store;
     public int unit;
     public OrderStatus status;
+    // This field name will be the JSON key
     public Links _links = new Links();
 
     public static OrderResponse from(Order o) {

@@ -1,4 +1,3 @@
-
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -16,6 +15,9 @@ import org.mockito.Mockito;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 @QuarkusTest
 public class WarehouseServiceTest {
@@ -41,12 +43,16 @@ public class WarehouseServiceTest {
     IOrderItemPickOutPort orderItemPickOutPort;
     @InjectMock
     IPersistEmployeePort persistEmployeePort;
+    @InjectMock
+    IDeleteEntityOutPort deleteEntityOutPort; // Added for delete coverage
+    @InjectMock
+    IUpdateEntityOutPort updateEntityOutPort; // Added for update coverage
 
     // --- ITEM TESTS ---
 
     @Test
     public void testCreateItem_Success() {
-        Item item = new Item("A13", "New Item","Hubland");
+        Item item = new Item("A13", "New Item", "Hubland");
         Mockito.when(itemRepository.existsBySku("A13")).thenReturn(false);
         Mockito.when(itemRepository.createItem(item)).thenReturn(new NoContentResult());
 
@@ -66,6 +72,20 @@ public class WarehouseServiceTest {
     }
 
     @Test
+    public void testUpdateItem_NotFound() { // Missing Case 1
+        Mockito.when(itemRepository.existsBySku("MISSING")).thenReturn(false);
+        NoContentResult result = warehouseService.updateItem("MISSING", new Item());
+        Assertions.assertEquals(404, result.getErrorCode());
+    }
+
+    @Test
+    public void testDeleteItem_NotFound() { // Missing Case 2
+        Mockito.when(itemRepository.existsBySku("MISSING")).thenReturn(false);
+        NoContentResult result = warehouseService.deleteItem("MISSING");
+        Assertions.assertEquals(404, result.getErrorCode());
+    }
+
+    @Test
     public void testLoadAllItems() {
         Mockito.when(readItemsPort.readItems()).thenReturn(Arrays.asList(new Item(), new Item()));
         List<Item> items = warehouseService.loadAllItems();
@@ -81,6 +101,30 @@ public class WarehouseServiceTest {
 
         NoContentResult result = warehouseService.createOrder(order);
         Assertions.assertFalse(result.hasError());
+    }
+
+    @Test
+    public void testUpdateOrder_NotFound() { // Missing Case 3
+        Mockito.when(readOrderPort.readOrder(99L)).thenReturn(null);
+        NoContentResult result = warehouseService.updateOrder(99L, new Order());
+        Assertions.assertEquals(404, result.getErrorCode());
+    }
+
+    @Test
+    public void testDeleteOrder_NotFound() { // Missing Case 4
+        Mockito.when(readOrderPort.readOrder(99L)).thenReturn(null);
+        NoContentResult result = warehouseService.deleteOrder(99L);
+        Assertions.assertEquals(404, result.getErrorCode());
+    }
+
+    @Test
+    public void testDeleteOrder_FailIfInProgress() { // Missing Case 5
+        Order order = new Order();
+        order.setStatus(OrderStatus.IN_PROGRESS);
+        Mockito.when(readOrderPort.readOrder(1L)).thenReturn(order);
+
+        NoContentResult result = warehouseService.deleteOrder(1L);
+        Assertions.assertEquals(409, result.getErrorCode());
     }
 
     @Test
@@ -109,6 +153,47 @@ public class WarehouseServiceTest {
     }
 
     @Test
+    public void testCreateOrderItem_OrderNotFound() { // Missing Case 6
+        Mockito.when(readOrderPort.readOrder(99L)).thenReturn(null);
+        OrderItem newItem = new OrderItem();
+        newItem.setOrderId(99L);
+
+        NoContentResult result = warehouseService.createOrderItem(newItem);
+        Assertions.assertEquals(404, result.getErrorCode());
+    }
+
+    @Test
+    public void testUpdateOrderItem_NotFound() { // Missing Case 7
+        Mockito.when(orderItemRepository.findById(99L)).thenReturn(null);
+        NoContentResult result = warehouseService.updateOrderItem(99L, new OrderItem());
+        Assertions.assertEquals(404, result.getErrorCode());
+    }
+
+    // --- PICKING TESTS ---
+
+    @Test
+    public void testPickOrderItem_NotFound() { // Missing Case 8
+        Mockito.when(orderItemRepository.findById(99L)).thenReturn(null);
+        NoContentResult result = warehouseService.pickOrderItem(99L, 5);
+        Assertions.assertEquals(404, result.getErrorCode());
+    }
+
+    // --- COMPLETION TESTS ---
+
+    @Test
+    public void testCompleteOrder_InvalidTargetStatus() { // Missing Case 9
+        Order order = new Order();
+        order.setStatus(OrderStatus.IN_PROGRESS);
+        Mockito.when(readOrderPort.readOrder(1L)).thenReturn(order);
+
+        // Trying to set it back to CREATED is forbidden
+        NoContentResult result = warehouseService.completeOrder(1L, OrderStatus.CREATED);
+        Assertions.assertEquals(400, result.getErrorCode());
+    }
+
+    // --- EXISTING TESTS RETAINED ---
+
+    @Test
     public void testCreateOrderItem_FailIfOrderNotCreated() {
         Order mockOrder = new Order();
         mockOrder.setStatus(OrderStatus.IN_PROGRESS);
@@ -120,8 +205,6 @@ public class WarehouseServiceTest {
         NoContentResult result = warehouseService.createOrderItem(newItem);
         Assertions.assertEquals(409, result.getErrorCode());
     }
-
-    // --- PICKING TESTS ---
 
     @Test
     public void testPickOrderItem_Success() {
@@ -146,8 +229,6 @@ public class WarehouseServiceTest {
         Assertions.assertEquals(400, result.getErrorCode());
     }
 
-    // --- EMPLOYEE & ASSIGNMENT TESTS ---
-
     @Test
     public void testCreateEmployee() {
         Employee emp = new Employee();
@@ -162,8 +243,6 @@ public class WarehouseServiceTest {
         NoContentResult result = warehouseService.assignOrder(1L, 1L);
         Assertions.assertFalse(result.hasError());
     }
-
-    // --- COMPLETION TESTS ---
 
     @Test
     public void testCompleteOrder_Success() {

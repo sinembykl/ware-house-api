@@ -51,7 +51,6 @@ public class WareHouseController {
         List<Item> result = facade.findItems(location, limit, offset);
         return Response.ok(new GenericEntity<List<Item>>(result) {}).build();
     }
-
     @Path("/order")
     @POST
     public Response createOrder(OrderCreationRequest request){
@@ -63,15 +62,16 @@ public class WareHouseController {
 
         String location = "/warehouse/order/" + result.getId();
 
-        Links body = new Links()
+        // Use a Map to wrap the links with the underscore key for the test
+        java.util.Map<String, Links> responseBody = java.util.Map.of("_links", new Links()
                 .add("self", location)
                 .add("addItem", location + "/items")
                 .add("assign", location + "/assign/{employeeId}")
-                .add("complete", location + "/complete");
+                .add("complete", location + "/complete"));
 
         return Response.status(Response.Status.CREATED)
                 .header("Location", location)
-                .entity(body)
+                .entity(responseBody)
                 .build();
     }
 
@@ -122,6 +122,12 @@ public class WareHouseController {
     @POST
     public Response createEmployee(EmployeeCreationObject request) {
         NoContentResult result = this.facade.createEmployee(request);
+        // FIX: Check for errors before returning 201 Created
+        if (result.hasError()) {
+            return Response.status(result.getErrorCode())
+                    .entity(result)
+                    .build();
+        }
         return Response.status(Response.Status.CREATED).entity(result).build();
     }
 
