@@ -55,22 +55,7 @@ Ensure you are in the directory containing `pom.xml`.
 
 ---
 
-## 5. Project Structure
-
-ware-house-api/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   └── resources/
-│   │       └── application.properties
-├── docker/
-│   └── Dockerfile.jvm
-├── pom.xml
-└── README.md
-
----
-
-## 6. Build & Verification (Maven)
+## 5. Build & Verification (Maven)
 
 ### Full verification build (required)
 
@@ -84,7 +69,7 @@ This command:
 
 ---
 
-## 7. Build Artifact
+## 6. Build Artifact
 
 After a successful build, the following executable file is created:
 
@@ -94,7 +79,7 @@ This is the Quarkus runner JAR used for Docker execution.
 
 ---
 
-## 8. Running the Application with Docker
+## 7. Running the Application with Docker
 
 ### Build Docker image
 
@@ -110,7 +95,7 @@ http://localhost:8080
 
 ---
 
-## 9. API Documentation (Swagger)
+## 8. API Documentation (Swagger)
 
 Swagger UI is available at:
 
@@ -123,7 +108,7 @@ It allows:
 
 ---
 
-## 10. Database Configuration
+## 9. Database Configuration
 
 ### Runtime
 - MariaDB
@@ -142,7 +127,7 @@ No external database setup is required for tests.
 
 ---
 
-## 11. API Usage Examples
+## 10. API Usage Examples
 
 Base URL:
 http://localhost:8080
@@ -209,7 +194,7 @@ curl -X PUT http://localhost:8080/warehouse/order/1/complete
 
 ---
 
-## 12. Common Commands Summary
+## 11. Common Commands Summary
 
 mvn clean test  
 mvn clean verify  
@@ -219,7 +204,7 @@ docker run -p 8080:8080 warehouse-app:1.0
 
 ---
 
-## 13. Final Notes
+## 12. Final Notes
 
 - No source code changes are required to run or evaluate the project
 - Fully reproducible using Maven and Docker
