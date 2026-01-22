@@ -21,13 +21,11 @@ services:
       dockerfile: src/main/docker/Dockerfile.jvm
     container_name: warehouse_app
     environment:
-      - QUARKUS_PROFILE=prod
-      # These variables tell the app to find 'mariadb' instead of 'localhost'
-      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:mariadb://mariadb:3306/warehouse
-      - QUARKUS_DATASOURCE_USERNAME=app
-      - QUARKUS_DATASOURCE_PASSWORD=app
-      # Optional: Helps with startup timing
-      - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=update
+      QUARKUS_PROFILE: prod
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:mariadb://mariadb:3306/warehouse
+      QUARKUS_DATASOURCE_USERNAME: app
+      QUARKUS_DATASOURCE_PASSWORD: app
+      QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION: update
     depends_on:
       mariadb:
         condition: service_healthy
