@@ -7,6 +7,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.cache.CacheKey;
+import io.quarkus.cache.CacheInvalidateAll;
 import org.example.core.domain.Employee;
 import org.example.core.domain.Item;
 import org.example.core.domain.Order;
@@ -23,14 +24,15 @@ public class WareHouseController {
     @Inject
     WarehouseFacade facade;
 
+    // --- ITEM ENDPOINTS ---
+
     @Path("/item")
     @POST
     public Response createItem(ItemCreationRequest request){
         NoContentResult result = facade.createItem(request);
-        // 2. Check if the service returned an error (like SKU already exists)
         if (result.hasError()) {
             return Response.status(result.getErrorCode())
-                    .entity(result) // This sends the "already exists" message to the user
+                    .entity(result)
                     .build();
         }
         return Response.status(Response.Status.CREATED).build();
@@ -43,7 +45,6 @@ public class WareHouseController {
             @QueryParam("limit") @DefaultValue("20") int limit,
             @QueryParam("offset") @DefaultValue("0") int offset
     ) {
-        // clamp (sicher)
         if (limit < 1) limit = 1;
         if (limit > 100) limit = 100;
         if (offset < 0) offset = 0;
@@ -51,6 +52,29 @@ public class WareHouseController {
         List<Item> result = facade.findItems(location, limit, offset);
         return Response.ok(new GenericEntity<List<Item>>(result) {}).build();
     }
+
+    @Path("/item/{sku}")
+    @GET
+    public Response findItemBySku(@PathParam("sku") @CacheKey String sku) {
+        Item item = facade.loadItem(sku);
+        if (item == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(item).build();
+    }
+
+    @Path("/item/{sku}")
+    @PUT
+    public Response updateItem(@PathParam("sku") String sku, ItemCreationRequest request) {
+        NoContentResult result = facade.updateItem(sku, request);
+        if (result.hasError()) {
+            return Response.status(result.getErrorCode()).entity(result).build();
+        }
+        return Response.ok().build();
+    }
+
+    // --- ORDER ENDPOINTS ---
+
     @Path("/order")
     @POST
     public Response createOrder(OrderCreationRequest request){
@@ -61,8 +85,6 @@ public class WareHouseController {
         }
 
         String location = "/warehouse/order/" + result.getId();
-
-        // Use a Map to wrap the links with the underscore key for the test
         java.util.Map<String, Links> responseBody = java.util.Map.of("_links", new Links()
                 .add("self", location)
                 .add("addItem", location + "/items")
@@ -75,10 +97,9 @@ public class WareHouseController {
                 .build();
     }
 
-
     @Path("/order/{id}")
     @GET
-    public Response findOrderById(@PathParam("id") Long id){
+    public Response findOrderById(@PathParam("id") @CacheKey Long id){
         Order order = facade.findAllOrder(id);
 
         if(order == null){
@@ -97,7 +118,6 @@ public class WareHouseController {
         return Response.ok(resp).build();
     }
 
-
     @Path("order/{id}/items")
     @POST
     public Response addOrderItems(@PathParam("id") Long id, OrderItemCreationRequest request) {
@@ -108,37 +128,14 @@ public class WareHouseController {
         return Response.status(Response.Status.CREATED).entity(result).build();
     }
 
-    @Path("orderItem/{id}/pick")
+    @Path("/order/{id}")
     @PUT
-    public Response pickOrderItem(@PathParam("id") Long id, OrderItemPickRequest request){
-        NoContentResult result = this.facade.pickOrderItem(id, request);
+    public Response updateOrder(@PathParam("id") Long id, OrderCreationRequest request) {
+        NoContentResult result = facade.updateOrder(id, request);
         if (result.hasError()) {
             return Response.status(result.getErrorCode()).entity(result).build();
         }
-        return Response.status(Response.Status.ACCEPTED).entity(result).build();
-    }
-
-    @Path("employee")
-    @POST
-    public Response createEmployee(EmployeeCreationObject request) {
-        NoContentResult result = this.facade.createEmployee(request);
-        // FIX: Check for errors before returning 201 Created
-        if (result.hasError()) {
-            return Response.status(result.getErrorCode())
-                    .entity(result)
-                    .build();
-        }
-        return Response.status(Response.Status.CREATED).entity(result).build();
-    }
-
-    @Path("/employee/{id}")
-    @GET
-    public Response findEmployeeById(@PathParam("id") @CacheKey Long id) {
-        Employee employee = facade.findEmployeeById(id);
-        if (employee == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(employee).build();
+        return Response.ok().build();
     }
 
     @Path("order/{orderid}/assign/{employeeId}")
@@ -161,14 +158,26 @@ public class WareHouseController {
         return Response.ok(result).build();
     }
 
-    @Path("/item/{sku}")
+    // --- EMPLOYEE ENDPOINTS ---
+
+    @Path("employee")
+    @POST
+    public Response createEmployee(EmployeeCreationObject request) {
+        NoContentResult result = this.facade.createEmployee(request);
+        if (result.hasError()) {
+            return Response.status(result.getErrorCode()).entity(result).build();
+        }
+        return Response.status(Response.Status.CREATED).entity(result).build();
+    }
+
+    @Path("/employee/{id}")
     @GET
-    public Response findItemBySku(@PathParam("sku") @CacheKey String sku) {
-        Item item = facade.loadItem(sku);
-        if (item == null) {
+    public Response findEmployeeById(@PathParam("id") @CacheKey Long id) {
+        Employee employee = facade.findEmployeeById(id);
+        if (employee == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok(item).build();
+        return Response.ok(employee).build();
     }
 
     @Path("/employee/{id}")
@@ -180,26 +189,6 @@ public class WareHouseController {
                 Response.ok().build();
     }
 
-    @Path("/item/{sku}")
-    @PUT
-    public Response updateItem(@PathParam("sku") String sku, ItemCreationRequest request) {
-        NoContentResult result = facade.updateItem(sku, request);
-        if (result.hasError()) {
-            return Response.status(result.getErrorCode()).entity(result).build();
-        }
-        return Response.ok().build();
-    }
-
-    @Path("/order/{id}")
-    @PUT
-    public Response updateOrder(@PathParam("id") Long id, OrderCreationRequest request) {
-        NoContentResult result = facade.updateOrder(id, request);
-        if (result.hasError()) {
-            return Response.status(result.getErrorCode()).entity(result).build();
-        }
-        return Response.ok().build();
-    }
-
     @Path("/employee/{id}")
     @DELETE
     public Response deleteEmployee(@PathParam("id") Long id) {
@@ -209,7 +198,28 @@ public class WareHouseController {
         }
         return Response.noContent().build();
     }
+
+    // --- ORDER ITEM ENDPOINTS ---
+
+    @Path("orderItem/{id}/pick")
+    @PUT
+    public Response pickOrderItem(@PathParam("id") Long id, OrderItemPickRequest request){
+        NoContentResult result = this.facade.pickOrderItem(id, request);
+        if (result.hasError()) {
+            return Response.status(result.getErrorCode()).entity(result).build();
+        }
+        return Response.status(Response.Status.ACCEPTED).entity(result).build();
+    }
 }
+
+
+
+
+
+
+
+
+
 
 
 

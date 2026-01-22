@@ -113,19 +113,21 @@ public class WarehouseServiceAdapter implements IItemRepository, IPersistOrderPo
 
     @Override
     @Transactional
-    public Order readOrder(Long orderId) { // Change return type to Order
+    public Order readOrder(Long orderId) {
         try {
+            // FIX: Add "left join fetch o.orderItemEntities" to the query
             List<OrderEntity> entities = em.createQuery(
-                            "select o from OrderEntity o where o.order_id = :id", OrderEntity.class)
+                            "select o from OrderEntity o " +
+                                    "left join fetch o.orderItemEntities " +
+                                    "where o.order_id = :id", OrderEntity.class)
                     .setParameter("id", orderId)
                     .getResultList();
 
-            // Check if list is empty to avoid index errors
             if (entities.isEmpty()) {
                 return null;
             }
 
-            // Map only the first result and return a single Order
+            // Now the entities list contains the items, and the mapper will see them
             return WarehouseMapper.toDomain(entities.get(0));
 
         } catch (Exception e) {

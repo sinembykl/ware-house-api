@@ -24,7 +24,7 @@ public class OrderEntity {
     private EmployeeEntity employee;
 
     // CRITICAL FIX: Initialize the list to avoid NullPointerException
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "order", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<OrderItemEntity> orderItemEntities = new ArrayList<>();
 
     public OrderEntity() {}
