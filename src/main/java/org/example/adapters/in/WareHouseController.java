@@ -35,6 +35,7 @@ public class WareHouseController {
                     .entity(result)
                     .build();
         }
+
         return Response.status(Response.Status.CREATED).build();
     }
 

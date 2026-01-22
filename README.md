@@ -1,65 +1,229 @@
-This project is a backend implementation for a Warehouse Management System built with the Quarkus framework. It implements a hexagonal architecture to manage inventory, tracking items and their stock levels through a RESTful API.
-
-## 📥 Installation and Setup
-
-## 📋 Prerequisites
-
-Before evaluating the project, please ensure the following are ready:
-
-- **Docker Desktop**: Must be **running** in the background.
-- **Java 17/21**: Installed and configured in your PATH.
-- **Maven**: Installed and configured (to run `mvn` commands).
-
-### 1. Clone the Repository
-
-To get a local copy of this project, open your terminal and run:
-
-Shell
-
-`git clone https://github.com/sinembykl/ware-house-api.git
-cd ware-house-api`
-
-### 2. Verify Project Structure
-
-Ensure you are in the root directory where the `pom.xml` is located. The project includes:
-
-- `src/`: Source code and tests.
-- `docker/`: Contains the `Dockerfile.jvm`.
-- `pom.xml`: Maven configuration for building the **46.4 MB Uber-JAR**.
+# 📦 WareHouse Management System
+Quarkus REST API · Docker · Maven Standard Lifecycle
 
 ---
 
-## 🛠️ Build and Verification (Professor's Instructions)
+## 1. Overview
 
-As per the strict evaluation requirements, the system uses the standard Maven lifecycle for verification.
+The **WareHouse Management System** is a backend RESTful API implemented using the **Quarkus** framework.
+It manages core warehouse operations such as **employees, items, orders, and order processing**.
 
-Shell
+The project is designed for:
+- reproducible builds
+- clean configuration
+- strict Maven lifecycle compliance
+- containerized execution with Docker
 
-`mvn clean verify`
-
-- **Execution**: This command compiles the code, runs all unit and integration tests, and packages the application.
-- **Artifact**: Upon a **BUILD SUCCESS**, the file `WareHouse-1.0-SNAPSHOT-runner.jar` is generated in the `target/` directory.
+All endpoints are documented via **OpenAPI / Swagger UI**.
 
 ---
 
-## 🐳 Running the System with Docker
+## 2. Technology Stack
 
-To evaluate the running system, follow these steps to build and start the containerized environment:
+- Java 17 / 21
+- Quarkus 3.10.x
+- Maven
+- Hibernate ORM / JPA
+- MariaDB (runtime)
+- H2 (in-memory, tests only)
+- Docker
 
-### 1. Build the Docker Image
+---
 
-Shell
+## 3. Prerequisites
 
-`docker run`
+The following software must be installed:
 
-`docker build -f docker/Dockerfile.jvm -t warehouse-app:1.0 .`
+- Docker Desktop (running)
+- Java JDK 17 or 21
+- Apache Maven
+- Git
 
-### 2. Start the Container
+Verification:
+java -version  
+mvn -version  
+docker --version
 
-Shell
+---
 
-`# Remove any existing instance to avoid naming conflicts
-docker rm -f final-check
+## 4. Clone Repository
 
-# Launch the application
-docker run -p 8080:8080 --name final-check warehouse-app:1.0`
+git clone https://github.com/sinembykl/ware-house-api.git  
+cd ware-house-api
+
+Ensure you are in the directory containing `pom.xml`.
+
+---
+
+## 5. Project Structure
+
+ware-house-api/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   └── resources/
+│   │       └── application.properties
+├── docker/
+│   └── Dockerfile.jvm
+├── pom.xml
+└── README.md
+
+---
+
+## 6. Build & Verification (Maven)
+
+### Full verification build (required)
+
+mvn clean verify
+
+This command:
+- compiles the project
+- runs all unit and integration tests
+- uses H2 in-memory database for tests
+- packages the application
+
+---
+
+## 7. Build Artifact
+
+After a successful build, the following executable file is created:
+
+target/WareHouse-1.0-SNAPSHOT-runner.jar
+
+This is the Quarkus runner JAR used for Docker execution.
+
+---
+
+## 8. Running the Application with Docker
+
+### Build Docker image
+
+docker build -f docker/Dockerfile.jvm -t warehouse-app:1.0 .
+
+### Run Docker container
+
+docker rm -f final-check  
+docker run -p 8080:8080 --name final-check warehouse-app:1.0
+
+Application URL:
+http://localhost:8080
+
+---
+
+## 9. API Documentation (Swagger)
+
+Swagger UI is available at:
+
+http://localhost:8080/q/swagger-ui/
+
+It allows:
+- endpoint inspection
+- schema validation
+- interactive API testing
+
+---
+
+## 10. Database Configuration
+
+### Runtime
+- MariaDB
+- Configured via environment variables:
+    - QUARKUS_DATASOURCE_JDBC_URL
+    - QUARKUS_DATASOURCE_USERNAME
+    - QUARKUS_DATASOURCE_PASSWORD
+
+### Tests
+- H2 in-memory database
+- Automatically used during:
+  mvn test  
+  mvn verify
+
+No external database setup is required for tests.
+
+---
+
+## 11. API Usage Examples
+
+Base URL:
+http://localhost:8080
+
+### Employee
+
+Create employee:
+curl -X POST http://localhost:8080/warehouse/employee
+
+Get employee:
+curl http://localhost:8080/warehouse/employee/1
+
+Update employee:
+curl -X PUT http://localhost:8080/warehouse/employee/1
+
+Delete employee:
+curl -X DELETE http://localhost:8080/warehouse/employee/1
+
+---
+
+### Item
+
+Create item:
+curl -X POST http://localhost:8080/warehouse/item
+
+Get item:
+curl http://localhost:8080/warehouse/item/ITEM-001
+
+Update item:
+curl -X PUT http://localhost:8080/warehouse/item/ITEM-001
+
+List items:
+curl http://localhost:8080/warehouse/items
+
+---
+
+### Order
+
+Create order:
+curl -X POST http://localhost:8080/warehouse/order
+
+Get order:
+curl http://localhost:8080/warehouse/order/1
+
+Add item to order:
+curl -X POST http://localhost:8080/warehouse/order/1/items
+
+Assign employee:
+curl -X PUT http://localhost:8080/warehouse/order/1/assign/1
+
+---
+
+### Order Item Processing
+
+Pick order item:
+curl -X PUT http://localhost:8080/warehouse/orderItem/1/pick
+
+---
+
+### Complete Order
+
+Complete order:
+curl -X PUT http://localhost:8080/warehouse/order/1/complete
+
+---
+
+## 12. Common Commands Summary
+
+mvn clean test  
+mvn clean verify  
+mvn clean package -DskipTests  
+docker build -f docker/Dockerfile.jvm -t warehouse-app:1.0 .  
+docker run -p 8080:8080 warehouse-app:1.0
+
+---
+
+## 13. Final Notes
+
+- No source code changes are required to run or evaluate the project
+- Fully reproducible using Maven and Docker
+- Swagger UI provides complete interactive API validation
+- Configuration follows Quarkus best practices
+
+---
